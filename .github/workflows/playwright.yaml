@@ -2,9 +2,9 @@ name: Playwright Tests
 
 on:
   push:
-    branches: 
-        - main
-        - development
+    branches:
+      - main
+      - development
 
 jobs:
   test:
@@ -34,7 +34,7 @@ jobs:
       - name: Run tests
         run: npx playwright test
 
-       - name: Send Email Notification
+      - name: Send Email Notification
         if: always()
         uses: dawidd6/action-send-mail@v3
         with:
