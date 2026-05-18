@@ -45,7 +45,7 @@ jobs:
 
           subject: Playwright Test Result
 
-          to: yourmail@gmail.com
+          to: praveen.c@jseven.in
           from: GitHub Actions
 
           body: |
