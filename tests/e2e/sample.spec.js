@@ -1,7 +1,9 @@
-import { test, expect } from '@playwright/test';
+import { test } from '@playwright/test';
+import { HomePage } from '../../pages/HomePage';
 
-test('homepage loads correctly', async ({ page }) => {
-    await page.goto('/');
+test('homepage loads using POM', async ({ page }) => {
+    const home = new HomePage(page);
 
-    await expect(page).toHaveTitle(/frontend/);
+    await home.open();
+    await home.checkTitle();
 });
