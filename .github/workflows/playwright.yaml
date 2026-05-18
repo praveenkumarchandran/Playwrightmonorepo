@@ -2,7 +2,9 @@ name: Playwright Tests
 
 on:
   push:
-    branches: [main]
+    branches: 
+        - main
+        - development
 
 jobs:
   test:
@@ -31,3 +33,24 @@ jobs:
 
       - name: Run tests
         run: npx playwright test
+
+       - name: Send Email Notification
+        if: always()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+
+          subject: Playwright Test Result
+
+          to: yourmail@gmail.com
+          from: GitHub Actions
+
+          body: |
+            Playwright pipeline completed.
+
+            Branch: ${{ github.ref_name }}
+            Triggered By: ${{ github.actor }}
+            Repository: ${{ github.repository }}
