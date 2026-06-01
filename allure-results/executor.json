@@ -1,0 +1,6 @@
+{
+  "name": "Local Run",
+  "type": "local",
+  "buildName": "Playwright Run",
+  "reportName": "Allure Report"
+}

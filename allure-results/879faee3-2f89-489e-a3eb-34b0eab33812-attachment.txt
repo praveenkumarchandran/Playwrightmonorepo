@@ -1,0 +1,5 @@
+✅ Navigated to find appointment page
+✅ TNDI date clicked
+✅ TNDI time clicked
+Reached additionaldetails page
+State saved → tests/.auth/booking-state.json

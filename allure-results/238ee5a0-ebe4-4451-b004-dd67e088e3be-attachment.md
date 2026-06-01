@@ -1,0 +1,80 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: tests\e2e\booking\setup\TNDIBooking.setup.js >> booking: complete steps 1–4 and save state
+- Location: tests\e2e\booking\setup\TNDIBooking.setup.js:13:1
+
+# Error details
+
+```
+Test timeout of 60000ms exceeded.
+```
+
+```
+Error: locator.click: Test timeout of 60000ms exceeded.
+Call log:
+  - waiting for locator('text=Farmington').first()
+
+```
+
+# Page snapshot
+
+```yaml
+- banner [ref=e5]:
+  - generic [ref=e7]:
+    - img "logo" [ref=e9]
+    - heading "586-416-3472" [level=6] [ref=e12]
+```
+
+# Test source
+
+```ts
+  1  | /**
+  2  |  * tests/e2e/booking/setup/TNDIBooking.setup.js
+  3  |  */
+  4  | 
+  5  | import { test as setup, expect } from '@playwright/test';
+  6  | import fs from 'fs';
+  7  | import path from 'path';
+  8  | 
+  9  | const STATE_FILE = 'tests/.auth/booking-state.json';
+  10 | 
+  11 | const BASE_URL = 'https://stage.setter.layline.live/thenerveanddiscinstitute/1/thenerveanddiscinstitutefarmington';
+  12 | 
+  13 | setup('booking: complete steps 1–4 and save state', async ({ page }) => {
+  14 | 
+  15 |     setup.setTimeout(60_000);
+  16 | 
+  17 |     // Create tests/.auth/ folder if it doesn't exist
+  18 |     fs.mkdirSync(path.dirname(STATE_FILE), { recursive: true });
+  19 | 
+  20 |     // ── Step 1: Location ─────────────────────────────────────────────────────
+  21 |     await page.goto(BASE_URL, { waitUntil: 'networkidle' });
+> 22 |     await page.locator('text=Farmington').first().click();
+     |                                                   ^ Error: locator.click: Test timeout of 60000ms exceeded.
+  23 | 
+  24 |     // ── Step 2: Choose Date & Time ───────────────────────────────────────────
+  25 |     await page.locator('[class*="available"]').first().click();
+  26 |     await page.locator('button:has-text("AM"), button:has-text("PM")').first().click();
+  27 |     await page.locator('button:has-text("Next"), button:has-text("Continue")').first().click();
+  28 | 
+  29 |     // ── Step 3: Intake Questions ─────────────────────────────────────────────
+  30 |     await page.waitForSelector('button:has-text("Next"), button:has-text("Continue")', { timeout: 15_000 });
+  31 |     await page.locator('button:has-text("Next"), button:has-text("Continue")').first().click();
+  32 | 
+  33 |     // ── Step 4: Add Insurance ────────────────────────────────────────────────
+  34 |     await page.waitForSelector('button:has-text("Skip"), button:has-text("Next")', { timeout: 15_000 });
+  35 |     await page.locator('button:has-text("Skip"), button:has-text("Next")').first().click();
+  36 | 
+  37 |     // ── Confirm Step 5 ───────────────────────────────────────────────────────
+  38 |     await expect(page).toHaveURL(/additionaldetails/, { timeout: 20_000 });
+  39 | 
+  40 |     await page.context().storageState({ path: STATE_FILE });
+  41 |     console.log(`✅ booking-setup done — state saved to ${STATE_FILE}`);
+  42 | });
+```

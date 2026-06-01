@@ -1,0 +1,9 @@
+✅ Clicked first available slot
+✅ Fixture: reached https://stage.setter.layline.live/thenerveanddiscinstitute/1/thenerveanddiscinstitutefarmington/additionaldetails
+Gender selected: Male
+ State selected: MI-Michigan
+Referral selected: Google
+SMS consent checked
+Referral selected: Doctor
+Doctor Name filled: Dr. Smith
+SMS consent checked

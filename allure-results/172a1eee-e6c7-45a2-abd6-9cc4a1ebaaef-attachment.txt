@@ -1,0 +1,5 @@
+✅ Reason selected: Acne
+✅ Navigated to find appointment page
+✅ Slot clicked: Thu Aug 68:10 AM
+Gender selected: Male
+ State selected: MI-Michigan

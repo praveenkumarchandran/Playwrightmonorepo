@@ -1,0 +1,22 @@
+{
+  "cookies": [],
+  "origins": [
+    {
+      "origin": "https://stage.setter.layline.live",
+      "localStorage": [
+        {
+          "name": "persist:patientdetails",
+          "value": "U2FsdGVkX189yz/r3TqbCbzEj1axetz3WEeMrGy9sDzb5Y3s8TH8n5aVjt+3ofwMf8om9DiY4jOVfUOd3eig+dMxs87/cZ5ZqTIqIi54Xyf/TcUcKgvffePBwe8ksUFvY/k0owxotRe5JU9hl9GiQPOzwLexwJphOdCs/nt/2gOWRuP+Ga6aHGQK4C62o7Opu6YsGu2YQ6ZdLu4E3AT9+JpOMa+72VEARN/QmiZfJZqlWZI6dCOEmXpjenYnqL44Y3ben5OgDUV7SNKLJhOcAQ=="
+        },
+        {
+          "name": "persist:adminLogin",
+          "value": "U2FsdGVkX18JhDYhnmbGLJb54jWm/LSQec86XN9e1+89JZF9J4jwtYWTnqmN0OQXy6b3tr41hwIlI754v4nWgxTXXxCdpQQlmMJ1WYCRTe9evl2dgtAuuTeMSrAlF7VuF122VRoTyAeJouPK3cYt8g=="
+        },
+        {
+          "name": "persist:reportsfilters",
+          "value": "U2FsdGVkX19DWuSQYUXvdJnkYsHNkRRYZSd2Vr0C8h2htCsODyv/hUADJZBF8nTNguxxunQYhSAhhvmxX3JMG9wfFNN+ubqq+3IYCOvaxXpKhvq+QmUta34Fq9n26ZB5wJ8gT442Idrfb1g07sk4qCAyjjpyZfvlyjf4keECCAxArcNqSvilHtMdS3Wu/Xj4KwCL5O///pqOgcxxDZRIdT1pvVzf9+GIrVm8D5C4lPkdaZql2kZcNynJxeNnjkIKWyOCb3HXkYjv3SEl0NNxy7RoCOuH0UA5xKbVcahqBKvy15hkl+yzI6p5uq/zW5Qe1TPlCXvf2yp0DDxmMmd5ZriHNixdUqyb6m8T2VbariUsIwSi09Yjv4v22IIrLWEoxriECg/lyneisO/GILIgROLPy8xJFuxEoNYYrK0ji2n7svIfCXNCFcdDXA/SNHrIBia554slRvTfJ/gDQKTekRM3jQJGFdMESRQ3Gt1C/c0isN8F9RXidn0hjM4X59NM6M8RqaUwSriiYS1CsBIBdGKxeyWcznYDeYWz7oFCyzhFSm/g4tcIPg08VshfL2b4eIV4gdZM4uaPGhdAoE1tvderDB+6srUKZhtdwTJMn6tBpiuSiilO4J5QrfH1kX49JIqyBpQW/yt4r2cLdUhHs1jANxtX5bHz0I154vPTXQQG4/xvwbZX807NZDG0+zvKSf8ZaGK05dX7iOj/9RfUIfhys4RAwgXBBj54M+eiRyJg5X19ZP4RSVH5UTQ6wMwTqSdUufBIfwjB+2mIPNdmq1Je6WxJeiEl9uPm+SFBD97o+WXNNMjixkgPV9e0QYGOpf/H/TuBx5jwu6YY+4W9wOEk1+4S3Je19BiqTd9ljgHkIMl9tRjUT/a6rDpecqD6cpcOGasXoY+DTjTmxey5ULxLIFWhN0Ha3RuJPn5boL4="
+        }
+      ]
+    }
+  ]
+}

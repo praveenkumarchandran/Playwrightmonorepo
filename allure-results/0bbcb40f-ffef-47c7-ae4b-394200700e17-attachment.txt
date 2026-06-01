@@ -1,0 +1,5 @@
+✅ Clicked first available slot
+✅ Gender selected: Male
+✅ State selected: MI
+✅ Referral selected: Doctor
+✅ Doctor Name filled: Dr. Smith

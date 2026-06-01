@@ -1,0 +1,3 @@
+Gender selected: Male
+ State selected: MI-Michigan
+Referral selected: Google

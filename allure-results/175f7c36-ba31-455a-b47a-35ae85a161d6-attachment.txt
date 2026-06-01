@@ -1,0 +1,28 @@
+
+📌 STEP 0: Login
+🌐 After login URL: https://stage.setter.layline.live/admin/thenerveanddiscinstitute/1/patients
+
+📌 STEP 1: Landing Page
+✅ Clicked: New Patient
+🌐 URL after New Patient: https://stage.setter.layline.live/thenerveanddiscinstitute/1/thenerveanddiscinstitutefarmington/findappointment
+
+📌 STEP 2: Slot Selection
+✅ Clicked slot button: "2:30 PM"
+✅ Clicked: Continue
+
+📌 STEP 3: Intake Questions
+✅ Picked option: "Knee Pain"
+ℹ️  Clicking all "No" radio buttons...
+ℹ️  Found 8 "No" radio labels
+✅ Clicked No label #1
+✅ Clicked No label #2
+✅ Clicked No label #3
+✅ Clicked No label #4
+✅ Clicked No label #5
+✅ Clicked No label #6
+✅ Clicked No label #7
+✅ Clicked No label #8
+ℹ️  Also found 4 radio inputs with value="No"
+✅ Clicked: Continue
+
+📌 STEP 4: Insurance

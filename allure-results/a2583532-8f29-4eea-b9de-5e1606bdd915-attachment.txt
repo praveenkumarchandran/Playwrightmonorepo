@@ -1,0 +1,5 @@
+Gender selected: Male
+ State selected: MI-Michigan
+Referral selected: Doctor
+Doctor Name filled: Dr. Johnson
+SMS consent checked

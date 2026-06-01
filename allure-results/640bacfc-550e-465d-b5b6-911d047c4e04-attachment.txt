@@ -1,0 +1,3 @@
+✅ Clicked first available slot
+Reached additionaldetails page
+State saved → tests/.auth/booking-state.json

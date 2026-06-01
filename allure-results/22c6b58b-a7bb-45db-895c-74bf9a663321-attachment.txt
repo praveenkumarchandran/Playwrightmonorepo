@@ -1,0 +1,8 @@
+Reason selected: Teleconsultation
+TNDI date clicked
+TNDI time clicked
+Worker fixture: reached additionaldetails — shared across all tests in this worker
+Gender selected: Female
+ State selected: MI-Michigan
+Referral selected: Facebook
+SMS consent checked

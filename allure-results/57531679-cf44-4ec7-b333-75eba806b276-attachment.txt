@@ -1,0 +1,43 @@
+
+📌 STEP 0: Login
+🌐 After login: https://stage.setter.layline.live/admin/thenerveanddiscinstitute/1/patients
+
+📌 STEP 1: Landing Page
+✅ Clicked: New Patient
+🌐 URL: https://stage.setter.layline.live/thenerveanddiscinstitute/1/thenerveanddiscinstitutefarmington/findappointment
+
+📌 STEP 2: Slot Selection
+✅ Slot: "2:30 PM"
+✅ Clicked: Continue
+
+📌 STEP 3: Intake Questions
+✅ Selected: Knee Pain
+✅ Selected: Neck Pain
+ℹ️  Found 4 "No" radio labels
+✅ No #1
+✅ No #2
+✅ No #3
+✅ No #4
+✅ Clicked: Continue
+
+📌 STEP 4: Insurance
+✅ Selected: Self Pay
+✅ Clicked: Manually Enter Details
+✅ Selected: Other (insurance plan)
+✅ Typed "12" in: input[placeholder*="other" i]
+✅ Clicked: Next
+
+📌 STEP 5: Additional Information
+✅ input[name*="first" i] → "John"
+✅ input[name*="last" i] → "Doe"
+✅ input[name*="email" i] → "johndoe@example.com"
+✅ input[name*="phone" i] → "5551234567"
+✅ input[name*="address1" i] → "123 Main St"
+✅ input[name*="city" i] → "Farmington Hills"
+✅ input[name*="zip" i] → "48335"
+✅ DOB → 01/15/1990
+✅ Gender → Male
+✅ State → Michigan
+✅ How Did You Hear → (first option)
+✅ Doctor Name → Dr. Smith
+✅ Checked: Consent checkbox
