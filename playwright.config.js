@@ -114,9 +114,13 @@ export default defineConfig({
 
     ],
 
-    webServer: {
-        command: 'npm run dev --prefix frontend',
-        url: 'https://stage.setter.layline.live',
-        reuseExistingServer: !process.env.CI,
-    },
+    // webServer is only needed for LOCAL development (when running a local frontend).
+    // In CI the tests hit https://stage.setter.layline.live directly — no local server needed.
+    ...(process.env.CI ? {} : {
+        webServer: {
+            command: 'npm run dev --prefix frontend',
+            url: 'https://stage.setter.layline.live',
+            reuseExistingServer: true,
+        },
+    }),
 });
