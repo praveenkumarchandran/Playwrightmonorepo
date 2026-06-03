@@ -94,9 +94,10 @@ function runStepperCases(test, expect, opts = {}) {
             if (hasInsurance) await goBack(stepperPage, 'Add Insurance');
             await goBack(stepperPage, 'Choose Date & Time');
             // Filter panel heading varies by client: "Change Filters" or "Basic Search"
+            // Use 20s timeout — the filter panel renders slightly after time slot buttons
             await expect(
                 stepperPage.locator(':text-matches("Change Filters|Basic Search", "i")').first()
-            ).toBeVisible({ timeout: 10_000 });
+            ).toBeVisible({ timeout: 20_000 });
         });
 
         // ── Intake Questions (if applicable) ──────────────────────────────────

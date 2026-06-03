@@ -25,6 +25,7 @@
  * @param {string|null} [opts.popupService=null]        Service that triggers the unavailability popup
  * @param {string|null} [opts.locationName=null]        Text visible in the info panel on slug URL (e.g. 'SINY Dermatology')
  * @param {string|null} [opts.anyUrl=null]              The /any/ variant URL — enables TC-LAND-S13/S14 panel tests
+ * @param {string|null} [opts.phoneNumber=null]         Expected header phone number (e.g. '718-491-5800')
  */
 export function runSINYLandingCases(test, expect, opts = {}) {
     const {
@@ -32,6 +33,7 @@ export function runSINYLandingCases(test, expect, opts = {}) {
         popupService = null,
         locationName = null,
         anyUrl = null,
+        phoneNumber = null,
     } = opts;
 
     // Shared Path B setup — only called when popupService is defined.
@@ -202,6 +204,16 @@ export function runSINYLandingCases(test, expect, opts = {}) {
         //   Slug URL (/sinydermatologybayridge/landing): left info card visible
         //     showing clinic name + address alongside the form card.
         //   /any/ URL (/any/landing): no info card — just the centered form card.
+
+        // ── Header phone number ───────────────────────────────────────────────
+
+        if (phoneNumber) {
+            test('TC-LAND-S12 — header phone number is visible and correct', async ({ landingPage }) => {
+                await expect(
+                    landingPage.page.getByText(phoneNumber, { exact: false }).first()
+                ).toBeVisible({ timeout: 10_000 });
+            });
+        }
 
         if (locationName && anyUrl) {
             test.describe('Location info panel', () => {

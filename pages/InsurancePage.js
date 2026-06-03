@@ -22,6 +22,14 @@ export class InsurancePage {
         this.dob = page.locator('input[placeholder="MM/DD/YYYY"]');
         this.genderTrigger = page.locator('div#gender[role="combobox"]');
 
+        // ── "Your Appointment" summary panel ──────────────────────────────────
+        // Visible on insurance + patient info pages — shows provider name, time, type
+        // confirming the slot selected on the find appointment page carried through.
+        // Regex matching handles heading elements whose textContent includes child node text
+        this.summaryHeading      = page.getByText(/Your Appointment/i).first();
+        this.summaryApptTime     = page.getByText(/Appointment Time/i).first();
+        this.summaryApptType     = page.getByText(/Appointment Type/i).first();
+
         // "How would you like to provide your insurance details?" — two side-by-side buttons
         this.takePictureBtn = page.locator('button:has-text("Take Picture of Card")');
         this.manualEntryBtn = page.locator('button:has-text("Manually Enter Details")');

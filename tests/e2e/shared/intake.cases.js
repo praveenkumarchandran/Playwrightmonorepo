@@ -1,9 +1,13 @@
 /**
  * @param {object} opts
  * @param {'tndi'|'hopemark'|'siny'} [opts.intakeType='tndi']
+ * @param {boolean} [opts.hasClearableSearch=true]
+ *   false when the symptom dropdown always shows all options regardless of input
+ *   (clearing the field doesn't hide the list). Skips TC-INT-07 and TC-INT-08.
+ *   TNDI shows all symptom checkboxes by default — clearing doesn't empty the dropdown.
  */
 function runIntakeCases(test, expect, opts = {}) {
-    const { intakeType = 'tndi' } = opts;
+    const { intakeType = 'tndi', hasClearableSearch = true } = opts;
 
     if (intakeType === 'hopemark') {
         runHopemarkIntakeCases(test, expect);
@@ -77,23 +81,25 @@ function runIntakeCases(test, expect, opts = {}) {
             ).toBeVisible({ timeout: 10_000 });
         });
 
-        test('TC-INT-07 — clearing the input hides all options', async ({ intakePage }) => {
-            await intakePage.symptomsInput.fill('Knee');
-            await intakePage.page.locator('.MuiAutocomplete-option').first()
-                .waitFor({ state: 'visible', timeout: 10_000 });
+        if (hasClearableSearch) {
+            test('TC-INT-07 — clearing the input hides all options', async ({ intakePage }) => {
+                await intakePage.symptomsInput.fill('Knee');
+                await intakePage.page.locator('.MuiAutocomplete-option').first()
+                    .waitFor({ state: 'visible', timeout: 10_000 });
 
-            await intakePage.symptomsInput.clear();
-            await expect(
-                intakePage.page.locator('.MuiAutocomplete-option')
-            ).toHaveCount(0, { timeout: 5_000 });
-        });
+                await intakePage.symptomsInput.clear();
+                await expect(
+                    intakePage.page.locator('.MuiAutocomplete-option')
+                ).toHaveCount(0, { timeout: 5_000 });
+            });
 
-        test('TC-INT-08 — invalid search term shows no options', async ({ intakePage }) => {
-            await intakePage.symptomsInput.fill('zzzzinvalidsymptom9999');
-            await expect(
-                intakePage.page.locator('.MuiAutocomplete-option')
-            ).toHaveCount(0, { timeout: 5_000 });
-        });
+            test('TC-INT-08 — invalid search term shows no options', async ({ intakePage }) => {
+                await intakePage.symptomsInput.fill('zzzzinvalidsymptom9999');
+                await expect(
+                    intakePage.page.locator('.MuiAutocomplete-option')
+                ).toHaveCount(0, { timeout: 5_000 });
+            });
+        }
 
         test('TC-INT-09 — single character input does not crash the field', async ({ intakePage }) => {
             await intakePage.symptomsInput.fill('a');

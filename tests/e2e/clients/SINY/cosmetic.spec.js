@@ -17,7 +17,8 @@ import { runPatientInfoCases }       from '../../shared/patientInfo.cases.js';
 import { runStepperCases }           from '../../shared/stepper.cases.js';
 import { runSINYLandingCases }       from '../../shared/sinyLanding.cases.js';
 import { runExistingPatientCases }   from '../../shared/existingPatient.cases.js';
-import { runFindAppointmentCases }   from '../../shared/findAppointment.cases.js';
+import { runFindAppointmentCases }      from '../../shared/findAppointment.cases.js';
+import { runPatientPageSummaryCases }     from '../../shared/appointmentSummary.cases.js';
 import { CLIENTS }                   from '../../../config/clients.js';
 
 const { test, expect }                   = makeNewPatientFixtures('SINY_COSMETIC');
@@ -26,7 +27,8 @@ const { test: epTest, expect: epExpect } = makeExistingPatientFixtures('SINY_COS
 runSINYLandingCases(test, expect, {
     reason:       'Cosmetic Procedure',
     popupService: 'Sclerotherapy',
-    locationName: 'SINY Dermatology',  // text visible in the info panel on slug URL
+    phoneNumber:  CLIENTS.SINY_COSMETIC.phone,  // '718-491-5800'
+    locationName: 'SINY Dermatology',
     anyUrl:       'https://stage.setter.layline.live/sinydermatology/1/any/landing',
 });
 runIntakeCases(test, expect, { intakeType: 'siny' });
@@ -43,7 +45,13 @@ runStepperCases(test, expect, {
 
 runFindAppointmentCases(test, expect, {
     expectedServiceType: CLIENTS.SINY_COSMETIC.serviceType,  // 'Botox treatment'
-    nextPageAfterSlot: 'patientInfo',  // Cosmetic has no insurance step → goes straight to Add Info
+    nextPageAfterSlot: 'patientInfo',
+});
+
+// Panel shows the reason ("Cosmetic Procedure"), consistent with SINY Medical showing "Skin Problem"
+runPatientPageSummaryCases(test, expect, {
+    expectedAppointmentType: CLIENTS.SINY_COSMETIC.reason,  // 'Cosmetic Procedure'
+    hasProviderName:          true,
 });
 
 const { existingPatient } = CLIENTS.SINY_COSMETIC;

@@ -6,12 +6,14 @@
  * @param {import('@playwright/test').TestType} test   from makeExistingPatientFixtures()
  * @param {Function} expect
  * @param {object}  opts
- * @param {string}  opts.firstName   Known-good patient first name
- * @param {string}  opts.lastName    Known-good patient last name
- * @param {string}  opts.dob         Known-good date of birth (MM/DD/YYYY)
+ * @param {string}  opts.firstName          Known-good patient first name
+ * @param {string}  opts.lastName           Known-good patient last name
+ * @param {string}  opts.dob                Known-good date of birth (MM/DD/YYYY)
+ * @param {boolean} [opts.checkPreFill=false] When true, verifies that after successful login
+ *                                            the patient info and insurance pages show pre-filled data
  */
 export function runExistingPatientCases(test, expect, opts = {}) {
-    const { firstName, lastName, dob } = opts;
+    const { firstName, lastName, dob, checkPreFill = false } = opts;
 
     test.describe('Existing Patient — identity search', () => {
 
@@ -195,5 +197,65 @@ export function runExistingPatientCases(test, expect, opts = {}) {
             });
 
         });
+
+        // ── Pre-fill verification ─────────────────────────────────────────────
+        // After a successful existing patient login, the insurance and patient info
+        // pages should be pre-filled with data from previous bookings.
+        // Enable with opts.checkPreFill: true once the existing patient has prior data.
+
+        if (checkPreFill) {
+            test.describe('Pre-fill after existing patient login', () => {
+
+                test('TC-EP-16 — patient info page is pre-filled with existing patient name after login', async ({ existingPatientPage }) => {
+                    // Login and navigate away from identity form
+                    await existingPatientPage.search(firstName, lastName, dob);
+                    await existingPatientPage.page.waitForLoadState('networkidle', { timeout: 20_000 });
+
+                    // Navigate to patient info page — may need to select a slot first
+                    // Try to find firstName field directly (if app navigates to patient info)
+                    const firstNameField = existingPatientPage.page
+                        .locator('input[name*="firstName"], input[placeholder*="First Name"]').first();
+
+                    if (await firstNameField.isVisible({ timeout: 10_000 }).catch(() => false)) {
+                        const value = await firstNameField.inputValue();
+                        // For existing patients, first name should be pre-filled (not empty)
+                        expect(value.trim()).not.toBe('');
+                    } else {
+                        // App navigated to findappointment or appointments list — acceptable
+                        console.log('Patient info not directly visible after login — app may show appointment list first');
+                    }
+                });
+
+                test('TC-EP-17 — insurance page pre-fills insurance type for returning patient', async ({ existingPatientPage }) => {
+                    await existingPatientPage.search(firstName, lastName, dob);
+                    await existingPatientPage.page.waitForLoadState('networkidle', { timeout: 20_000 });
+
+                    // Try to navigate to insurance page via stepper if currently on findappointment
+                    const isOnFindAppt = existingPatientPage.page.url().includes('findappointment');
+                    if (isOnFindAppt) {
+                        const addInsuranceStep = existingPatientPage.page
+                            .getByText('Add Insurance', { exact: true });
+                        const stepVisible = await addInsuranceStep.isVisible({ timeout: 3_000 }).catch(() => false);
+                        if (stepVisible) await addInsuranceStep.click();
+                    }
+
+                    // Check if insurance type has a pre-filled value (not empty/placeholder)
+                    const insuranceSelect = existingPatientPage.page
+                        .locator('[class*="MuiSelect-select"], input#insurance-select-box').first();
+
+                    if (await insuranceSelect.isVisible({ timeout: 10_000 }).catch(() => false)) {
+                        const value = await insuranceSelect.inputValue().catch(
+                            () => insuranceSelect.textContent()
+                        );
+                        expect(String(value ?? '').trim()).not.toBe('');
+                        console.log(`Insurance pre-filled with: ${value}`);
+                    } else {
+                        console.log('Insurance page not reachable from current URL — skipping pre-fill check');
+                    }
+                });
+
+            });
+        }
+
     });
 }

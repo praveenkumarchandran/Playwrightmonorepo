@@ -16,7 +16,8 @@ import { runPatientInfoCases }       from '../../shared/patientInfo.cases.js';
 import { runStepperCases }           from '../../shared/stepper.cases.js';
 import { runSINYLandingCases }       from '../../shared/sinyLanding.cases.js';
 import { runExistingPatientCases }   from '../../shared/existingPatient.cases.js';
-import { runFindAppointmentCases }   from '../../shared/findAppointment.cases.js';
+import { runFindAppointmentCases }      from '../../shared/findAppointment.cases.js';
+import { runInsurancePageSummaryCases, runPatientPageSummaryCases } from '../../shared/appointmentSummary.cases.js';
 import { CLIENTS }                   from '../../../config/clients.js';
 
 const { test, expect }                   = makeNewPatientFixtures('SINY_MEDICAL');
@@ -24,7 +25,8 @@ const { test: epTest, expect: epExpect } = makeExistingPatientFixtures('SINY_MED
 
 runSINYLandingCases(test, expect, {
     reason:       'Skin Problem',
-    locationName: 'SINY Dermatology',  // text visible in the info panel on slug URL
+    phoneNumber:  CLIENTS.SINY_MEDICAL.phone,  // '718-491-5800'
+    locationName: 'SINY Dermatology',
     anyUrl:       'https://stage.setter.layline.live/sinydermatology/1/any/landing',
 });
 runIntakeCases(test, expect, { intakeType: 'siny' });
@@ -59,8 +61,25 @@ runStepperCases(test, expect, {
 
 runFindAppointmentCases(test, expect, {
     expectedServiceType: CLIENTS.SINY_MEDICAL.serviceType,  // 'Acne'
-    nextPageAfterSlot: 'insurance',  // Medical has insurance step → goes to Add Insurance
+    nextPageAfterSlot: 'insurance',
+});
+
+// Verify "Your Appointment" panel on insurance page shows correct data
+// Insurance page: shows provider photo + name + Appointment Time + Appointment Type
+// Panel shows the actual service booked (e.g. "Acne") NOT the main reason ("Skin Problem")
+// Confirmed from screenshot: panel shows "Skin Problem" (the reason), NOT "Acne" (sub-service)
+runInsurancePageSummaryCases(test, expect, {
+    expectedAppointmentType: CLIENTS.SINY_MEDICAL.reason,  // 'Skin Problem' — what the panel actually shows
+    hasProviderName:          true,
+});
+
+runPatientPageSummaryCases(test, expect, {
+    expectedAppointmentType: CLIENTS.SINY_MEDICAL.reason,  // 'Skin Problem'
+    hasProviderName:          true,
 });
 
 const { existingPatient } = CLIENTS.SINY_MEDICAL;
-runExistingPatientCases(epTest, epExpect, existingPatient);
+runExistingPatientCases(epTest, epExpect, {
+    ...existingPatient,
+    checkPreFill: true,  // verify insurance + patient info pre-filled after existing patient login
+});

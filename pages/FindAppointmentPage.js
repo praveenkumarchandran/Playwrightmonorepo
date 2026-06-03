@@ -29,18 +29,34 @@ export class FindAppointmentPage {
     }
 
     async waitForLoad() {
-        // 1. Wait for filter inputs to appear
+        // 1. Wait for the first filter input (Location) to appear
         await this.locationDropdown.waitFor({ state: 'visible', timeout: 15_000 });
-        // 2. Provider data loads async — wait until provider dropdown has a value
-        await this.page.waitForFunction(() => {
+
+        // 2. Detect which layout the client uses:
+        //    SINY / Clarus: 3 comboboxes (Location, ServiceType, Provider) + "Show More" per provider card
+        //    TNDI / TNDI-style: 2 comboboxes (Location, Reason) + flat date strip + "Available Time Slots"
+        const hasSINYLayout = await this.page.waitForFunction(() => {
             const inputs = document.querySelectorAll('input[role="combobox"]');
             return inputs.length >= 3 && inputs[2]?.value?.trim() !== '';
-        }, { timeout: 20_000 });
-        // 3. Provider cards render after data loads — wait for "Show More" text to appear
-        await this.page.waitForFunction(
-            () => document.body.innerText.includes('Show More'),
-            { timeout: 20_000 }
-        );
+        }, { timeout: 5_000 }).then(() => true).catch(() => false);
+
+        if (hasSINYLayout) {
+            // Either: provider cards with "Show More" links (slots available)
+            //      OR: "no online availability" message (no slots for this filter combo)
+            await this.page.waitForFunction(
+                () => document.body.innerText.includes('Show More') ||
+                      /no online availability|no availability|please call/i.test(document.body.innerText),
+                { timeout: 20_000 }
+            );
+        } else {
+            // Flat date+time slot picker (TNDI style)
+            await this.page.waitForFunction(
+                () => document.body.innerText.includes('Available Time Slots') ||
+                      document.body.innerText.includes('Select Date') ||
+                      document.body.innerText.includes('Change Filters'),
+                { timeout: 20_000 }
+            );
+        }
     }
 
     // Read the selected value from a MUI Autocomplete input.
@@ -94,6 +110,47 @@ export class FindAppointmentPage {
         return this.showMoreLinks.count();
     }
 
+    // Returns true when the page shows a "no online availability" message
+    // instead of provider cards. This can happen when:
+    //   - The selected location has no providers with online scheduling
+    //   - All providers are unavailable for the current filter combination
+    async hasNoAvailabilityMessage() {
+        return this.page.evaluate(() =>
+            /no online availability|no availability|please call our office/i.test(
+                document.body.innerText
+            )
+        );
+    }
+
+    // Returns the provider name from the nth provider card (0-indexed).
+    //
+    // Uses innerText (which preserves line breaks unlike textContent) and filters lines
+    // to find the first one that is not a date, time, or "Show More/Less".
+    // This handles:
+    //   - textContent concatenation:  "JJesse OchoaThu Jul 23..." (image alt + name + slots)
+    //   - no word boundary between name and date: "HaugheyThu"
+    async getProviderName(cardIndex = 0) {
+        const showMoreEl = this.showMoreLinks.nth(cardIndex);
+        return showMoreEl.evaluate(anchor => {
+            // Walk up from "Show More" to find the card container
+            let el = anchor.parentElement;
+            for (let depth = 0; depth < 10; depth++) {
+                if (!el || el === document.body) break;
+                // Use innerText which splits on layout line breaks
+                const lines = (el.innerText ?? '').split('\n')
+                    .map(l => l.trim())
+                    .filter(l =>
+                        l.length > 1 &&
+                        // Skip: Show More/Less, day names, time patterns, AM/PM only, single chars
+                        !l.match(/^(Show\s|Mon|Tue|Wed|Thu|Fri|Sat|Sun|AM$|PM$|\d+:\d+)/i)
+                    );
+                if (lines.length >= 1) return lines[0];
+                el = el.parentElement;
+            }
+            return null;
+        });
+    }
+
     // Expands the nth provider card by clicking its "Show More" link.
     // Waits for the "More Slots" section (date strip + time buttons) to appear.
     async clickShowMore(cardIndex = 0) {
@@ -122,7 +179,20 @@ export class FindAppointmentPage {
     }
 
     // Clicks the Continue / Next button after a slot is selected.
+    // Self-healing: some clients (e.g. Clarus) navigate directly when a time slot is
+    // clicked — no separate Continue button appears. If the URL already changed away
+    // from findappointment within 2 seconds, skip the button click entirely.
     async clickContinue() {
+        const alreadyNavigated = await this.page
+            .waitForURL(url => !url.toString().includes('findappointment'), { timeout: 2_000 })
+            .then(() => true)
+            .catch(() => false);
+
+        if (alreadyNavigated) {
+            console.log('Continue: page already navigated (direct slot-click navigation)');
+            return;
+        }
+
         const btn = this.page.locator('button:has-text("Continue"), button:has-text("Next")').first();
         await btn.waitFor({ state: 'visible', timeout: 10_000 });
         await btn.click();

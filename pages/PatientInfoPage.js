@@ -27,6 +27,11 @@ export class PatientInfoPage {
         this.referralInput = page.locator('input#referral-select-box');
 
         // ── Conditional & other ───────────────────────────────────────────────
+        // ── "Your Appointment" summary panel (left sidebar) ──────────────────
+        this.summaryHeading      = page.getByText(/Your Appointment/i).first();
+        this.summaryApptTime     = page.getByText(/Appointment Time/i).first();
+        this.summaryApptType     = page.getByText(/Appointment Type/i).first();
+
         this.doctorName = page.locator('input[placeholder="Enter Doctor Name"]');
         this.smsConsent = page.locator('input[type="checkbox"]').first();
         this.submitBtn = page.locator('button:has-text("Book Now")');

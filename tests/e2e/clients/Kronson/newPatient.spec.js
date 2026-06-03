@@ -10,6 +10,7 @@
  */
 
 import { makeNewPatientFixtures, makeExistingPatientFixtures } from '../../../fixtures/newPatient.fixture.js';
+import { runFindAppointmentCases } from '../../shared/findAppointment.cases.js';
 import { runInsuranceCases }       from '../../shared/insurance.cases.js';
 import { runPatientInfoCases }     from '../../shared/patientInfo.cases.js';
 import { runStepperCases }         from '../../shared/stepper.cases.js';
@@ -20,6 +21,12 @@ const { test, expect }                   = makeNewPatientFixtures('KRONSON');
 const { test: epTest, expect: epExpect } = makeExistingPatientFixtures('KRONSON');
 
 // No runIntakeCases — Kronson has no intake page
+
+// Find Appointment — Arcadia location in staging may show "no online availability".
+// TC-FA-NA tests verify the error message; all other tests skip gracefully if no slots.
+runFindAppointmentCases(test, expect, {
+    expectedServiceType: CLIENTS.KRONSON.reason,  // 'Vein Consult'
+});
 // Kronson error messages are inline red text (tag unknown — not <p>).
 // :text-matches() finds leaf text nodes regardless of element tag.
 const kronsonErrorSelector = ':text-matches("to proceed|is required", "i")';

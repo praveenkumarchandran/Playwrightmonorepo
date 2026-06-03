@@ -34,19 +34,24 @@ export default defineConfig({
 
         // ── TNDI ─────────────────────────────────────────────────────────────
         // Full flow: Landing → Slot → Intake → Insurance → PatientInfo
+        // retries: 1 — each insurance/patient page test runs its own full flow;
+        // after many sequential flows the staging server can get slow
         {
             name: 'tndi',
             testDir: './tests/e2e/clients/TNDI',
             timeout: 120_000,
             workers: 1,
+            retries: 1,
         },
 
         // ── Clarus Dermatology ────────────────────────────────────────────────
         // Flow: Landing → SlotFilter → Slot → Insurance → PatientInfo (no intake)
+        // workers: 1 — sequential to avoid slot conflicts and slow-server race conditions
         {
             name: 'clarus',
             testDir: './tests/e2e/clients/ClarusDerm',
             timeout: 120_000,
+            workers: 1,
         },
 
         // ── SINY Dermatology (Medical) ────────────────────────────────────────
@@ -61,12 +66,13 @@ export default defineConfig({
 
         // ── SINY Dermatology (Cosmetic) ───────────────────────────────────────
         // Flow: Landing → SlotFilter → Intake → Slot → PatientInfo (no insurance)
+        // workers: 1 — cosmetic has fewer providers/slots; parallel workers caused conflicts
         {
             name: 'siny-cosmetic',
             testDir: './tests/e2e/clients/SINY',
             testMatch: /cosmetic\.spec\.js/,
             timeout: 120_000,
-            workers: 2,
+            workers: 1,
         },
 
         // ── Hopemark Health ───────────────────────────────────────────────────

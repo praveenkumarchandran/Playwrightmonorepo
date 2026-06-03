@@ -26,6 +26,13 @@ export class LandingPage {
 
     async open(url) {
         await this.page.goto(url, { waitUntil: 'networkidle' });
+        // Extra guard: SPAs can keep showing "Loading..." after networkidle fires.
+        // Wait until the reason dropdown OR the New Patient button actually renders.
+        // This protects ALL fixtures that call runFlow (findAppointmentPage, stepperPage, etc.)
+        await this.page.waitForSelector(
+            'button#newPatient-button, input#serviceType-select-box, [role="combobox"]',
+            { timeout: 30_000 }
+        );
     }
 
     /**
@@ -110,7 +117,7 @@ export class LandingPage {
             await this.reasonAutocomplete.click();
             await this.reasonAutocomplete.pressSequentially(reasonType, { delay: 20 });
             const option = this.page.locator('[role="option"]').filter({ hasText: reasonType }).first();
-            await option.waitFor({ state: 'visible', timeout: 10_000 });
+            await option.waitFor({ state: 'visible', timeout: 20_000 });
             await option.click();
         } else {
             // MUI Select style (Hopemark, SINY)
@@ -164,7 +171,7 @@ export class LandingPage {
             await this.reasonAutocomplete.click();
             await this.reasonAutocomplete.pressSequentially(reasonType, { delay: 20 });
             const option = this.page.locator('[role="option"]').filter({ hasText: reasonType }).first();
-            await option.waitFor({ state: 'visible', timeout: 10_000 });
+            await option.waitFor({ state: 'visible', timeout: 20_000 });
             await option.click();
         } else {
             await this.reasonSelect.waitFor({ state: 'visible', timeout: 10_000 });

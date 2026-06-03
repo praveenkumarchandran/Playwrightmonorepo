@@ -1,0 +1,260 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: tests\e2e\clients\SINY\medical.spec.js >> Find Appointment — Basic Search filters >> Slot selection >> TC-FA-17 — "Your Appointment" summary on the next page shows the selected provider and appointment type
+- Location: tests\e2e\shared\findAppointment.cases.js:207:13
+
+# Error details
+
+```
+TimeoutError: locator.waitFor: Timeout 10000ms exceeded.
+Call log:
+  - waiting for locator('[class*="MuiSelect"], [class*="MuiFormControl"]').filter({ has: locator('label:has-text("Reason"), label:has-text("Service Type"), [class*="MuiInputLabel"]') }).locator('[role="combobox"], .MuiSelect-select').first() to be visible
+
+```
+
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - banner [ref=e5]:
+    - generic [ref=e7]:
+      - img "logo" [ref=e9]
+      - heading "718-491-5800" [level=6] [ref=e12]
+  - generic [ref=e15]:
+    - generic [ref=e17]:
+      - paragraph [ref=e18]: SINY Dermatology & Cosmetic Surgery
+      - generic [ref=e19]:
+        - paragraph [ref=e20]: 7901 4th Ave,
+        - paragraph [ref=e21]: Brooklyn, NY 11209
+    - generic [ref=e23]:
+      - generic:
+        - heading [level=3]
+      - generic [ref=e24]:
+        - heading "What is your reason for scheduling?" [level=5] [ref=e25]
+        - generic [ref=e28]:
+          - combobox "Visit reason" [ref=e29]
+          - button "Open" [ref=e31] [cursor=pointer]:
+            - img [ref=e32]
+          - group
+      - generic [ref=e34]:
+        - heading "Have you visited us before?" [level=5] [ref=e35]
+        - generic [ref=e36]:
+          - button "Existing Patient" [ref=e37] [cursor=pointer]
+          - button "New Patient" [ref=e38] [cursor=pointer]
+      - generic [ref=e40]:
+        - heading "Powered by" [level=6] [ref=e41]
+        - img "MUlogo" [ref=e42]
+```
+
+# Test source
+
+```ts
+  17  |         // Service Type combobox (second-level, appears after reason selection)
+  18  |         this.serviceTypeDropdown = page.getByRole('combobox', { name: /service type/i });
+  19  |         // Location combobox (appears when a gray/unavailable service is selected)
+  20  |         this.locationDropdown = page.getByRole('combobox', { name: /^location$/i });
+  21  |         // "Service not available" dialog shown when gray service + gray location are both chosen
+  22  |         this.unavailabilityPopup = page.locator('[role="dialog"]').filter({
+  23  |             hasText: /not available/i,
+  24  |         });
+  25  |     }
+  26  | 
+  27  |     async open(url) {
+  28  |         await this.page.goto(url, { waitUntil: 'networkidle' });
+  29  |     }
+  30  | 
+  31  |     /**
+  32  |      * Select the visit reason (and service type if provided) then click Existing Patient.
+  33  |      * Automatically dismisses any popup that appears after the click (e.g. SINY
+  34  |      * "Consultation Required" for cosmetic services, "Consultation Fee Notice" for
+  35  |      * cosmetic consultations). Works across all services without per-client config.
+  36  |      *
+  37  |      * @param {string} reasonType
+  38  |      * @param {object} [opts]
+  39  |      * @param {string} [opts.serviceType]        — second-level dropdown (SINY only)
+  40  |      * @param {string} [opts.landingPopupAction] — preferred dismiss button; if omitted,
+  41  |      *                                             falls back through common labels automatically
+  42  |      */
+  43  |     async startExistingPatient(reasonType, opts = {}) {
+  44  |         await this._selectReason(reasonType);
+  45  | 
+  46  |         if (opts.serviceType) {
+  47  |             await this._selectServiceType(opts.serviceType);
+  48  |         }
+  49  | 
+  50  |         await this.existingPatientBtn.waitFor({ state: 'visible', timeout: 10_000 });
+  51  |         await this.existingPatientBtn.click();
+  52  | 
+  53  |         // Auto-dismiss any popup that appears — handles all SINY service types
+  54  |         await this._autoDismissPopup(opts.landingPopupAction);
+  55  | 
+  56  |         await this.page.waitForLoadState('networkidle', { timeout: 30_000 });
+  57  |     }
+  58  | 
+  59  |     /**
+  60  |      * Dismiss whatever popup appears after a button click, if any.
+  61  |      * Tries `preferredButton` first, then falls back through common dismiss labels.
+  62  |      * Safe to call even when no popup appears — exits silently.
+  63  |      *
+  64  |      * Covers:
+  65  |      *   "Consultation Required"   → "Schedule Procedure" / "Cosmetic Consultation"
+  66  |      *   "Consultation Fee Notice" → "Continue"
+  67  |      *   Generic dialogs           → "OK" / "Close"
+  68  |      *
+  69  |      * @param {string|null} preferredButton — try this label first (from client config)
+  70  |      */
+  71  |     async _autoDismissPopup(preferredButton = null) {
+  72  |         const dialog = this.page.locator('[role="dialog"], [class*="MuiDialog-paper"]');
+  73  |         const isVisible = await dialog.isVisible({ timeout: 3_000 }).catch(() => false);
+  74  |         if (!isVisible) return;
+  75  | 
+  76  |         const candidates = [
+  77  |             preferredButton,
+  78  |             'Schedule Procedure',  // SINY cosmetic "Consultation Required" popup
+  79  |             'Continue',            // SINY "Consultation Fee Notice" popup
+  80  |             'OK',
+  81  |             'Close',
+  82  |         ].filter(Boolean);
+  83  | 
+  84  |         for (const label of candidates) {
+  85  |             const btn = dialog.locator(`button:has-text("${label}")`);
+  86  |             const visible = await btn.isVisible({ timeout: 1_000 }).catch(() => false);
+  87  |             if (visible) {
+  88  |                 await btn.click();
+  89  |                 console.log(`Popup dismissed via "${label}"`);
+  90  |                 await this.page.waitForLoadState('networkidle', { timeout: 15_000 });
+  91  |                 return;
+  92  |             }
+  93  |         }
+  94  | 
+  95  |         console.warn('Popup appeared but no known dismiss button was found');
+  96  |     }
+  97  | 
+  98  |     /**
+  99  |      * @param {string} reasonType
+  100 |      * @param {object} [opts]
+  101 |      * @param {string} [opts.serviceType]        — SINY: sub-service dropdown value (e.g. 'Botox treatment')
+  102 |      * @param {string} [opts.landingPopupAction] — button label to click in any post-New-Patient popup
+  103 |      */
+  104 |     async startNewPatient(reasonType, opts = {}) {
+  105 |         const hasAutocomplete = await this.reasonAutocomplete
+  106 |             .isVisible({ timeout: 3_000 })
+  107 |             .catch(() => false);
+  108 | 
+  109 |         if (hasAutocomplete) {
+  110 |             await this.reasonAutocomplete.click();
+  111 |             await this.reasonAutocomplete.pressSequentially(reasonType, { delay: 20 });
+  112 |             const option = this.page.locator('[role="option"]').filter({ hasText: reasonType }).first();
+  113 |             await option.waitFor({ state: 'visible', timeout: 10_000 });
+  114 |             await option.click();
+  115 |         } else {
+  116 |             // MUI Select style (Hopemark, SINY)
+> 117 |             await this.reasonSelect.waitFor({ state: 'visible', timeout: 10_000 });
+      |                                     ^ TimeoutError: locator.waitFor: Timeout 10000ms exceeded.
+  118 |             await this.reasonSelect.click();
+  119 |             const option = this.page.locator('[role="option"], li[role="option"]')
+  120 |                 .filter({ hasText: reasonType }).first();
+  121 |             await option.waitFor({ state: 'visible', timeout: 10_000 });
+  122 |             await option.click();
+  123 |         }
+  124 |         console.log(`Reason selected: ${reasonType}`);
+  125 | 
+  126 |         // SINY: second-level service type dropdown appears after reason selection
+  127 |         if (opts.serviceType) {
+  128 |             await this._selectServiceType(opts.serviceType);
+  129 |         }
+  130 | 
+  131 |         await this.newPatientBtn.waitFor({ state: 'visible', timeout: 10_000 });
+  132 |         await this.newPatientBtn.click();
+  133 | 
+  134 |         // Dismiss any post-click popup (SINY fee notice or consultation-required dialog)
+  135 |         if (opts.landingPopupAction) {
+  136 |             await this._dismissPopup(opts.landingPopupAction);
+  137 |         } else {
+  138 |             // Auto-dismiss "Continue" popup if it appears unexpectedly
+  139 |             await this._dismissPopup('Continue');
+  140 |         }
+  141 | 
+  142 |         await this.page.waitForLoadState('networkidle', { timeout: 30_000 });
+  143 |     }
+  144 | 
+  145 |     // Select a value from the service-type sub-dropdown (appears after reason selection on SINY)
+  146 |     async _selectServiceType(serviceType) {
+  147 |         await this.serviceTypeDropdown.waitFor({ state: 'visible', timeout: 10_000 });
+  148 |         await this.serviceTypeDropdown.click();
+  149 | 
+  150 |         const option = this.page.locator('[role="option"], li[role="option"]')
+  151 |             .filter({ hasText: serviceType }).first();
+  152 |         await option.waitFor({ state: 'visible', timeout: 10_000 });
+  153 |         await option.click();
+  154 |         console.log(`Service type selected: ${serviceType}`);
+  155 |     }
+  156 | 
+  157 |     // Select only the reason (no service type, no New Patient click) — used by gray-flow tests.
+  158 |     async _selectReason(reasonType) {
+  159 |         const hasAutocomplete = await this.reasonAutocomplete
+  160 |             .isVisible({ timeout: 3_000 })
+  161 |             .catch(() => false);
+  162 | 
+  163 |         if (hasAutocomplete) {
+  164 |             await this.reasonAutocomplete.click();
+  165 |             await this.reasonAutocomplete.pressSequentially(reasonType, { delay: 20 });
+  166 |             const option = this.page.locator('[role="option"]').filter({ hasText: reasonType }).first();
+  167 |             await option.waitFor({ state: 'visible', timeout: 10_000 });
+  168 |             await option.click();
+  169 |         } else {
+  170 |             await this.reasonSelect.waitFor({ state: 'visible', timeout: 10_000 });
+  171 |             await this.reasonSelect.click();
+  172 |             const option = this.page.locator('[role="option"], li[role="option"]')
+  173 |                 .filter({ hasText: reasonType }).first();
+  174 |             await option.waitFor({ state: 'visible', timeout: 10_000 });
+  175 |             await option.click();
+  176 |         }
+  177 |         console.log(`Reason selected: ${reasonType}`);
+  178 |     }
+  179 | 
+  180 |     // Returns the text of the first visually-gray option in the currently-open listbox.
+  181 |     // SINY does NOT use aria-disabled — unavailable options are identified by computed
+  182 |     // text color (gray/muted) or reduced opacity rather than DOM attributes.
+  183 |     async _findGrayOptionText() {
+  184 |         const listbox = this.page.locator('[role="listbox"]');
+  185 |         await listbox.waitFor({ state: 'visible', timeout: 10_000 });
+  186 |         return listbox.evaluate(lb => {
+  187 |             for (const el of lb.querySelectorAll('[role="option"]')) {
+  188 |                 const { color, opacity } = window.getComputedStyle(el);
+  189 |                 // Reduced opacity (MUI disabled pattern: 0.38)
+  190 |                 if (parseFloat(opacity) < 0.8) return el.textContent?.trim() ?? null;
+  191 |                 const m = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
+  192 |                 if (!m) continue;
+  193 |                 const [r, g, b, a] = [+m[1], +m[2], +m[3], +(m[4] ?? '1')];
+  194 |                 // Low-alpha color (e.g. rgba(0,0,0,0.38)) or actual gray RGB
+  195 |                 if (a < 0.6 || (r > 80 && g > 80 && b > 80 && Math.abs(r - g) < 50 && Math.abs(g - b) < 50)) {
+  196 |                     return el.textContent?.trim() ?? null;
+  197 |                 }
+  198 |             }
+  199 |             return null;
+  200 |         });
+  201 |     }
+  202 | 
+  203 |     // Returns the text of the first non-gray option in the currently-open listbox.
+  204 |     async _findValidOptionText() {
+  205 |         const listbox = this.page.locator('[role="listbox"]');
+  206 |         await listbox.waitFor({ state: 'visible', timeout: 10_000 });
+  207 |         return listbox.evaluate(lb => {
+  208 |             const isGray = el => {
+  209 |                 const { color, opacity } = window.getComputedStyle(el);
+  210 |                 if (parseFloat(opacity) < 0.8) return true;
+  211 |                 const m = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
+  212 |                 if (!m) return false;
+  213 |                 const [r, g, b, a] = [+m[1], +m[2], +m[3], +(m[4] ?? '1')];
+  214 |                 return a < 0.6 || (r > 80 && g > 80 && b > 80 && Math.abs(r - g) < 50 && Math.abs(g - b) < 50);
+  215 |             };
+  216 |             for (const el of lb.querySelectorAll('[role="option"]')) {
+  217 |                 if (!isGray(el)) return el.textContent?.trim() ?? null;
+```

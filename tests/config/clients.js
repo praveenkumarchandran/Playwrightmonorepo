@@ -21,6 +21,7 @@ export const CLIENTS = {
     TNDI: {
         id: 141,
         name: 'The Nerve and Disc Institute',
+        phone: '586-416-3472',  // confirmed from screenshot
         url: 'https://stage.setter.layline.live/thenerveanddiscinstitute/1/thenerveanddiscinstitutefarmington/landing',
         newPatientFlow: ['landing', 'slotPick', 'intake', 'insurance', 'patientInfo'],
         existingPatientFlow: ['existingLanding'],
@@ -36,6 +37,7 @@ export const CLIENTS = {
     CLARUS_DERM: {
         id: 133,
         name: 'Clarus Dermatology',
+        phone: '877-408-2431',  // confirmed from screenshot (top-right header)
         url: 'https://stage.setter.layline.live/clarusdermatology/1/minnetonka/landing',
         newPatientFlow: ['landing', 'slotFilter', 'slotPick', 'insurance', 'patientInfo'],
         existingPatientFlow: ['existingLanding'],
@@ -59,6 +61,7 @@ export const CLIENTS = {
     SINY_MEDICAL: {
         id: 162,
         name: 'SINY Dermatology — Medical',
+        phone: '718-491-5800',  // confirmed from screenshot
         url: 'https://stage.setter.layline.live/sinydermatology/1/sinydermatologybayridge/landing',
         newPatientFlow: ['landing', 'intake', 'slotPick', 'insurance', 'patientInfo'],
         existingPatientFlow: ['existingLanding'],
@@ -87,6 +90,7 @@ export const CLIENTS = {
     SINY_COSMETIC: {
         id: 162,
         name: 'SINY Dermatology — Cosmetic',
+        phone: '718-491-5800',  // same as medical — same clinic
         url: 'https://stage.setter.layline.live/sinydermatology/1/sinydermatologybayridge/landing',
         newPatientFlow: ['landing', 'intake', 'slotPick', 'patientInfo'],
         existingPatientFlow: ['existingLanding'],

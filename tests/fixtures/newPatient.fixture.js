@@ -42,8 +42,9 @@ export function makeNewPatientFixtures(clientKey) {
         // ── landingPage — navigates to the client URL, returns LandingPage object ──
         // Used for tests that interact only with the landing page (e.g. gray-service flow).
         landingPage: async ({ page }, use) => {
-            await page.goto(client.url, { waitUntil: 'networkidle' });
-            await use(new LandingPage(page));
+            const landing = new LandingPage(page);
+            await landing.open(client.url);  // open() now includes the content-ready wait
+            await use(landing);
         },
 
         // ── intakePage — arrives AT the intake page without filling it ───────
@@ -163,8 +164,8 @@ export function makeExistingPatientFixtures(clientKey) {
 
         // Navigate to landing → select reason (same as new patient) → click Existing Patient
         existingPatientPage: async ({ page }, use) => {
-            await page.goto(client.url, { waitUntil: 'networkidle' });
             const landing = new LandingPage(page);
+            await landing.open(client.url);  // open() includes the content-ready wait
             await landing.startExistingPatient(client.reason, {
                 serviceType:        client.serviceType        ?? null,
                 landingPopupAction: client.landingPopupAction ?? null,
