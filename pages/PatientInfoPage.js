@@ -7,11 +7,14 @@ export class PatientInfoPage {
         this.lastName = page.locator('input[name*="lastName"]');
         this.email = page.locator('input[name="email"]');
         this.phone = page.locator('input[name*="phone"], input[type="tel"]').first();
-        this.address1 = page.locator('input[name*="address1"]');
-        this.address2 = page.locator('input[name*="address2"]');
-        this.city = page.locator('input[name*="city"]');
-        this.zip = page.locator('input[name*="homeZip"]');
-        this.dob = page.locator('input[placeholder="MM/DD/YYYY"]');
+        this.address1 = page.locator('input[name*="address1"], input[placeholder="Address1 *"], input[placeholder*="Address 1"]').first();
+        this.address2 = page.locator('input[name*="address2"], input[placeholder="Address2 (Optional)"], input[placeholder*="Address 2"]').first();
+        this.city     = page.locator('input[name*="city"],     input[placeholder="City *"]').first();
+        // "Home Zip" placeholder confirmed from SINY screenshot; name attr fallback for TNDI/Clarus
+        this.zip = page.locator('input[name*="homeZip"], input[name*="zip"], input[placeholder*="Zip"]').first();
+        // Date of Birth — MUI DatePicker (type="text", placeholder="MM/DD/YYYY").
+        // SINY shows a floating label "Date of Birth *" but input placeholder is still MM/DD/YYYY.
+        this.dob = page.locator('input[placeholder="MM/DD/YYYY"]').first();
 
         // ── Dropdowns (confirmed via DevTools) ────────────────────────────────
         // Gender  → MUI Select <div id="gender" role="combobox"> (NOT an input)
@@ -49,9 +52,20 @@ export class PatientInfoPage {
     }
 
     async fillDOB(dob) {
-        // Masked input — type digits one by one, fill() doesn't work
-        await this.dob.click();
-        await this.dob.pressSequentially(dob.replace(/\D/g, ''), { delay: 80 });
+        const digits = dob.replace(/\D/g, ''); // e.g. '01151990'
+        const isDateInput = await this.dob.evaluate(el => el.type === 'date').catch(() => false);
+
+        if (isDateInput) {
+            // Native date picker (e.g. Kronson) — expects YYYY-MM-DD
+            const y = digits.slice(4, 8);
+            const m = digits.slice(0, 2);
+            const d = digits.slice(2, 4);
+            await this.dob.fill(`${y}-${m}-${d}`);
+        } else {
+            // Masked text input (TNDI) — type digits sequentially
+            await this.dob.click();
+            await this.dob.pressSequentially(digits, { delay: 30 });
+        }
     }
 
     /**
@@ -84,9 +98,23 @@ export class PatientInfoPage {
      * @param {string} value  e.g. 'MI-Michigan' or just 'Michigan'
      */
     async selectState(value = 'MI-Michigan') {
-        await this.stateInput.click();
-        await this.stateInput.clear();
-        await this.stateInput.pressSequentially(value, { delay: 50 });
+        const hasAutocomplete = await this.stateInput.isVisible({ timeout: 3_000 }).catch(() => false);
+
+        if (hasAutocomplete) {
+            // TNDI — MUI Autocomplete input
+            await this.stateInput.click();
+            await this.stateInput.clear();
+            await this.stateInput.pressSequentially(value, { delay: 20 });
+        } else {
+            // Kronson — MUI Select dropdown (div trigger, not input)
+            const trigger = this.page
+                .locator('[class*="MuiFormControl"]')
+                .filter({ has: this.page.locator('label:has-text("State")') })
+                .locator('[role="combobox"], .MuiSelect-select')
+                .first();
+            await trigger.waitFor({ state: 'visible', timeout: 10_000 });
+            await trigger.click();
+        }
 
         const option = this.page
             .locator('[role="option"]')
@@ -95,8 +123,7 @@ export class PatientInfoPage {
 
         await option.waitFor({ state: 'visible', timeout: 10_000 });
         await option.click();
-
-        console.log(` State selected: ${value}`);
+        console.log(`State selected: ${value}`);
     }
 
     /**
@@ -112,7 +139,7 @@ export class PatientInfoPage {
     async selectReferral(value) {
         await this.referralInput.click();
         await this.referralInput.clear();
-        await this.referralInput.pressSequentially(value, { delay: 50 });
+        await this.referralInput.pressSequentially(value, { delay: 20 });
 
         const option = this.page
             .locator('[role="option"]')
@@ -163,8 +190,13 @@ export class PatientInfoPage {
         if (dob) await this.fillDOB(dob);
         if (gender) await this.selectGender(gender);
         if (state) await this.selectState(state);
-        if (referral) await this.selectReferral(referral);
-        if (referralOther) await this.selectReferralOther(referralOther);
+        if (referral) {
+            const fieldExists = await this.referralInput.isVisible({ timeout: 2_000 }).catch(() => false);
+            if (fieldExists) {
+                await this.selectReferral(referral);
+                if (referralOther) await this.selectReferralOther(referralOther);
+            }
+        }
         if (smsConsent) await this.checkSmsConsent();
     }
 }

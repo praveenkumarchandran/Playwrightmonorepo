@@ -1,37 +1,24 @@
-// export class SlotPage {
-//     constructor(page) {
-//         this.page = page;
-//     }
-
-//  async clickAnySlot() {
-//     const slot = this.page.locator('button:has-text("AM"), button:has-text("PM")').first();
-
-//     await slot.waitFor({ state: 'visible' });
-//     await slot.click();
-
-//     console.log("Clicked first available slot");
-// }
-
-//     async continue() {
-//         await this.page.click('button:has-text("Continue")');
-//     }
-// }
 
 
 export class SlotPage {
     constructor(page) {
         this.page = page;
 
-        // ── Filters (Clarus only) ─────────────────────────────────────────────
-        this.locationInput = page.locator('input#appointment_location-select-box');
-        this.appointmentReason = page.locator('input#appointment_servicetype-select-box');
-        this.providerInput = page.locator('input#provider-select-box');
+        // ── Filters — MUI Autocomplete (Clarus: input with typed search) ──────
+        this.locationAutocomplete = page.locator('input#appointment_location-select-box');
+        this.reasonAutocomplete = page.locator('input#appointment_servicetype-select-box');
+        this.providerAutocomplete = page.locator('input#provider-select-box');
 
-        // ── TNDI — date strip + time buttons ──────────────────────────────────
-        this.tndiDateBtn = page.locator('button.MuiButton-outlined')
+        // ── Filters — MUI Select (Kronson: click div, pick from listbox) ──────
+        // These are <div role="combobox"> dropdowns, not text inputs.
+        this.locationSelect = page.locator('[data-testid="location-select"], #location-select, [aria-label*="ocation"]').first();
+        this.reasonSelect = page.locator('[data-testid="reason-select"],  #reason-select,  [aria-label*="eason"]').first();
+
+        // ── TNDI / Kronson — date strip + time buttons ────────────────────────
+        this.tndiDateBtn = page.locator('button.MuiButton-outlined, button.MuiButtonBase-root')
             .filter({ hasText: /Mon|Tue|Wed|Thu|Fri|Sat|Sun/ }).first();
-        this.tndiTimeBtn = page.locator('button.MuiButton-outlined')
-            .filter({ hasText: /AM|PM/ }).first();
+        this.tndiTimeBtn = page.locator('button.MuiButton-outlined, button.MuiButtonBase-root')
+            .filter({ hasText: /AM|PM|\d+:\d+\s*(AM|PM)/ }).first();
 
         // ── Clarus — recentslot- id buttons ───────────────────────────────────
         this.clarusSlot = page.locator('[id^="recentslot-"]').first();
@@ -39,10 +26,12 @@ export class SlotPage {
         this.continueBtn = page.locator('button:has-text("Continue"), button:has-text("Next")').first();
     }
 
-    async #selectOption(input, value) {
+    // MUI Autocomplete: click input, type, pick from dropdown list
+    async #selectAutocomplete(input, value) {
+        await input.waitFor({ state: 'visible', timeout: 10_000 });
         await input.click();
         await input.clear();
-        await input.pressSequentially(value, { delay: 50 });
+        await input.pressSequentially(value, { delay: 20 });
 
         const option = this.page
             .locator('[role="option"]')
@@ -51,38 +40,97 @@ export class SlotPage {
 
         await option.waitFor({ state: 'visible', timeout: 10_000 });
         await option.click();
-        console.log(`✅ Selected: ${value}`);
+        console.log(`✅ Selected (autocomplete): ${value}`);
     }
 
+    // MUI Select: click the div trigger, pick from listbox
+    async #selectDropdown(trigger, value) {
+        await trigger.waitFor({ state: 'visible', timeout: 10_000 });
+        await trigger.click();
+
+        const option = this.page
+            .locator('[role="option"], li[role="option"]')
+            .filter({ hasText: value })
+            .first();
+
+        await option.waitFor({ state: 'visible', timeout: 10_000 });
+        await option.click();
+        console.log(`✅ Selected (dropdown): ${value}`);
+    }
+
+    // Auto-detects which filter style is present (autocomplete input vs select div)
     async selectLocation(value) {
-        await this.#selectOption(this.locationInput, value);
+        const hasAutocomplete = await this.locationAutocomplete
+            .isVisible({ timeout: 3_000 })
+            .catch(() => false);
+
+        if (hasAutocomplete) {
+            await this.#selectAutocomplete(this.locationAutocomplete, value);
+        } else {
+            // MUI Select style — find by label text "Location"
+            const trigger = this.page.locator('[class*="MuiSelect"], [class*="MuiFormControl"]')
+                .filter({ has: this.page.locator('label:has-text("Location"), [class*="MuiInputLabel"]:has-text("Location")') })
+                .locator('[role="combobox"], .MuiSelect-select')
+                .first();
+            await this.#selectDropdown(trigger, value);
+        }
     }
 
     async selectAppointmentReason(value) {
-        await this.#selectOption(this.appointmentReason, value);
+        const hasAutocomplete = await this.reasonAutocomplete
+            .isVisible({ timeout: 3_000 })
+            .catch(() => false);
+
+        if (hasAutocomplete) {
+            await this.#selectAutocomplete(this.reasonAutocomplete, value);
+        } else {
+            const trigger = this.page.locator('[class*="MuiSelect"], [class*="MuiFormControl"]')
+                .filter({ has: this.page.locator('label:has-text("Appointment Reason"), label:has-text("Reason")') })
+                .locator('[role="combobox"], .MuiSelect-select')
+                .first();
+            await this.#selectDropdown(trigger, value);
+        }
     }
 
     async selectProvider(value) {
-        await this.#selectOption(this.providerInput, value);
+        await this.#selectAutocomplete(this.providerAutocomplete, value);
     }
 
     /**
-     * Auto-detects TNDI vs Clarus:
-     * Clarus → clicks first recentslot- button
-     * TNDI   → clicks first available date then first time slot
+     * Click the first available slot.
+     *
+     * @param {'tndi'|'clarus'|'datetime'|undefined} slotType
+     *   Pass from client config to skip auto-detection and save ~15 s per test.
+     *   'datetime' = Hopemark-style combined "Wed Jun 3 4:45 PM" buttons.
+     *   Omit (or pass undefined) only when the type is genuinely unknown.
      */
-    async clickAnySlot() {
-        // waitFor() actually waits for the API response; isVisible() is immediate and races.
-        const isClarusSlot = await this.clarusSlot
-            .waitFor({ state: 'visible', timeout: 15_000 })
-            .then(() => true)
-            .catch(() => false);
+    async clickAnySlot(slotType) {
+        if (slotType === 'datetime') {
+            // Hopemark: combined date+time buttons like "Wed Jun 4 4:45 PM"
+            const datetimeBtn = this.page.locator('button')
+                .filter({ hasText: /\b(Mon|Tue|Wed|Thu|Fri|Sat|Sun)\b.*\d+:\d+\s*(AM|PM)/ })
+                .first();
+            await datetimeBtn.waitFor({ state: 'visible', timeout: 15_000 });
+            await datetimeBtn.click();
+            console.log(`Datetime slot clicked`);
+            return;
+        }
 
-        if (isClarusSlot) {
+        const isClarus = slotType === 'clarus'
+            ? true
+            : slotType === 'tndi'
+                ? false
+                // Auto-detect fallback — only used when slotType is not set in config
+                : await this.clarusSlot
+                    .waitFor({ state: 'visible', timeout: 15_000 })
+                    .then(() => true)
+                    .catch(() => false);
+
+        if (isClarus) {
+            await this.clarusSlot.waitFor({ state: 'visible', timeout: 15_000 });
             await this.clarusSlot.click();
             console.log(`Clarus slot clicked`);
         } else {
-            // TNDI — click date first then time
             await this.tndiDateBtn.waitFor({ state: 'visible', timeout: 10_000 });
             await this.tndiDateBtn.click();
             console.log(`TNDI date clicked`);
