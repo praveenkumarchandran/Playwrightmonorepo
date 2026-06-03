@@ -5,21 +5,21 @@ on:
     branches:
       - main
       - stage
-      - development
+      - dev
   pull_request:
     branches:
       - main
       - stage
   # Daily run at 6 AM UTC
   schedule:
-    - cron: '0 6 * * *'
+    - cron: "0 6 * * *"
   # Manual trigger with optional project filter
   workflow_dispatch:
     inputs:
       project:
-        description: 'Project to run (e.g. siny-medical). Leave blank for all.'
+        description: "Project to run (e.g. siny-medical). Leave blank for all."
         required: false
-        default: ''
+        default: ""
 
 jobs:
   test:
@@ -46,7 +46,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
+          cache: "npm"
 
       - name: Install dependencies
         run: npm ci

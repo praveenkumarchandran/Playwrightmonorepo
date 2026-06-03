@@ -1,0 +1,3 @@
+Reason selected: Cosmetic Procedure
+Service type selected: Botox treatment
+Popup dismissed via "Schedule Procedure"

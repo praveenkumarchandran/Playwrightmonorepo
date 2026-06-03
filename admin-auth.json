@@ -6,15 +6,15 @@
       "localStorage": [
         {
           "name": "persist:patientdetails",
-          "value": "U2FsdGVkX189yz/r3TqbCbzEj1axetz3WEeMrGy9sDzb5Y3s8TH8n5aVjt+3ofwMf8om9DiY4jOVfUOd3eig+dMxs87/cZ5ZqTIqIi54Xyf/TcUcKgvffePBwe8ksUFvY/k0owxotRe5JU9hl9GiQPOzwLexwJphOdCs/nt/2gOWRuP+Ga6aHGQK4C62o7Opu6YsGu2YQ6ZdLu4E3AT9+JpOMa+72VEARN/QmiZfJZqlWZI6dCOEmXpjenYnqL44Y3ben5OgDUV7SNKLJhOcAQ=="
+          "value": "U2FsdGVkX1+4zy5b6g/4ZHCzKQrtFeGwPh76H0eQhXdmCLc0guG6d6tXXOEZD4RwNZyIuqFM0WFTj1+9bAJfRZ3cjToHZCkqCcHlMqvL9s/D1Vk/h7FvDlUl7Qb/l0x9NBMHQBbGjlrnifTR8vXv3GnIFqz0HvEGlchSpTfWbYjg47ozn4ZLw8BFdK66q56JXbIF7qQ7E+ec2Ai5PyBEYB/lXDQ1HNbsGIrOh3lrC51EhHhxTnxO4CgNzz0n2w4Svbwj6h9mz8q/GTIrN1piJEF8OQNM+LUCQyoMdGYlGxo3QATePZDjNB042w1yJ82MZxWKNX+MMW8za45lxRW1s/GcQIJg8+zQ9/KcWkOt9QNUlZL2XZuj4P5DEI3H/1eG"
         },
         {
           "name": "persist:adminLogin",
-          "value": "U2FsdGVkX18JhDYhnmbGLJb54jWm/LSQec86XN9e1+89JZF9J4jwtYWTnqmN0OQXy6b3tr41hwIlI754v4nWgxTXXxCdpQQlmMJ1WYCRTe9evl2dgtAuuTeMSrAlF7VuF122VRoTyAeJouPK3cYt8g=="
+          "value": "U2FsdGVkX1+OFv4Ym+H61j2MG7Mmr46evghlhuEhkGLDHekHyAFGd3xFiqk2Rs8mnF5zRDOMM4599PV9XCLcN+S7Bl6o8XGNzarBtCITu0ioaEfA7O1SrSepDPwMeD6yzKypft9dWp6UCGYakt8TuQ=="
         },
         {
           "name": "persist:reportsfilters",
-          "value": "U2FsdGVkX19DWuSQYUXvdJnkYsHNkRRYZSd2Vr0C8h2htCsODyv/hUADJZBF8nTNguxxunQYhSAhhvmxX3JMG9wfFNN+ubqq+3IYCOvaxXpKhvq+QmUta34Fq9n26ZB5wJ8gT442Idrfb1g07sk4qCAyjjpyZfvlyjf4keECCAxArcNqSvilHtMdS3Wu/Xj4KwCL5O///pqOgcxxDZRIdT1pvVzf9+GIrVm8D5C4lPkdaZql2kZcNynJxeNnjkIKWyOCb3HXkYjv3SEl0NNxy7RoCOuH0UA5xKbVcahqBKvy15hkl+yzI6p5uq/zW5Qe1TPlCXvf2yp0DDxmMmd5ZriHNixdUqyb6m8T2VbariUsIwSi09Yjv4v22IIrLWEoxriECg/lyneisO/GILIgROLPy8xJFuxEoNYYrK0ji2n7svIfCXNCFcdDXA/SNHrIBia554slRvTfJ/gDQKTekRM3jQJGFdMESRQ3Gt1C/c0isN8F9RXidn0hjM4X59NM6M8RqaUwSriiYS1CsBIBdGKxeyWcznYDeYWz7oFCyzhFSm/g4tcIPg08VshfL2b4eIV4gdZM4uaPGhdAoE1tvderDB+6srUKZhtdwTJMn6tBpiuSiilO4J5QrfH1kX49JIqyBpQW/yt4r2cLdUhHs1jANxtX5bHz0I154vPTXQQG4/xvwbZX807NZDG0+zvKSf8ZaGK05dX7iOj/9RfUIfhys4RAwgXBBj54M+eiRyJg5X19ZP4RSVH5UTQ6wMwTqSdUufBIfwjB+2mIPNdmq1Je6WxJeiEl9uPm+SFBD97o+WXNNMjixkgPV9e0QYGOpf/H/TuBx5jwu6YY+4W9wOEk1+4S3Je19BiqTd9ljgHkIMl9tRjUT/a6rDpecqD6cpcOGasXoY+DTjTmxey5ULxLIFWhN0Ha3RuJPn5boL4="
+          "value": "U2FsdGVkX1/BFVq73j2hL2TZ8vTXIQ6e+gPSmspJx8z3mZ4Ws2xDhwbdkRjclwYuQKhtVrP4NuzHPOuFOah1jzUJTiKPq3fkHzVJdBadSJAm5YRshWJbl3h0Zd7ReGnl8DT4eWfAcxXQ5csFwiOdHjU9b/6vyVttzNMyqgKFwuM91xJgv8mlZiq3eH0tdysk2+GBxhWkIb6A2OJallCXCT00e379ARPuWLe2aZNwnb9x6+dcWV5W/7GjHiNAIEx7JEY+Xw46NID82or8wqKcf2AwrF9OYBcwCptoxBrw5HgLqeMm98pM6L0t/oU+Pk+0MtI95P0aboebGvtVtj9KRKWkdrZ0EI/RnHM5ZpHwKOrR8WFlbFLFoLcCobYrWv+mVRkKyX7e2eQdshAuAJa6mNmQj7hxJY4hx7RB4SOiZEYADr1tepgWGckBB4umMJFgsdYUBHumpR4f+OdBRYuoc2dsdgIvHfrf/eOAjFIfIzm6750NfH/4vkfutA4jerglxZRemtvSOlLgFnTA7U3fAVMbKqakSX1Tt4BaMHAyMHZDpY+nYhv8ny5qIhOmDF8VesBNEatLytgj3cHVvgrkquFMuDZlmi5XruNWESWy82PltiM8ZFZTAHRjVF6Rgj5hPTs+Dl6t0x6s4YPlod1xuEDVkJ2OHzuOYUYwIIOhlYuxHtRqnfCnkpfPG+L9U3EPCjcuhrKuxGaVu7YKa+1+opThIsPBUKLMsol/M0dn5IDVbQ67nlUvIt+/GzgI55pEIr325/yEwrH6t2K3qOkVwPvpcltKdvAzv4WyCfDNSzOY5lLMu+oQxBICLHzccNJRapJJvztOp32Ql1klC2AwT+FV2Bh0Id6g5drKPvBn3J/F9qsQTHwSz41pNizcDs95kIDKPHow5RJwfpDpmO9mFskgP6ePXWXvfH/A74dUWgI="
         }
       ]
     }

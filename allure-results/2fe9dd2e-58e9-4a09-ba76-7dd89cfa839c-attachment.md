@@ -1,0 +1,260 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: tests\e2e\clients\Kronson\newPatient.spec.js >> Form validation >> TC27 — partial form still shows errors
+- Location: tests\e2e\shared\patientInfo.cases.js:243:9
+
+# Error details
+
+```
+Error: expect(locator).toBeVisible() failed
+
+Locator: locator('[class*="Mui-error"]').first()
+Expected: visible
+Timeout: 5000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 5000ms
+  - waiting for locator('[class*="Mui-error"]').first()
+
+```
+
+```yaml
+- banner:
+  - img "logo"
+  - heading "888-214-4110" [level=6]
+- button "1":
+  - paragraph: "1"
+- paragraph: Location
+- button "2":
+  - paragraph: "2"
+- paragraph: Choose Date & Time
+- button "3":
+  - paragraph: "3"
+- paragraph: Add Insurance
+- button "4":
+  - paragraph: "4"
+- paragraph: Add Info
+- heading "Your Appointment" [level=5]
+- heading "Location" [level=6]
+- paragraph: Arcadia
+- heading "Location Address" [level=6]
+- paragraph: 301 W Huntington Dr Suite 519, CA CA 91007
+- heading "Appointment Time" [level=6]
+- paragraph: 12:00 PM, Wed Jun 3, 2026
+- heading "Appointment Type" [level=6]
+- paragraph: Vein Consult
+- text: First Name *
+- textbox "First Name *": John
+- text: Last Name *
+- textbox "Last Name *"
+- heading "*Please enter patient Last Name to proceed" [level=6]
+- text: Date of Birth *
+- textbox "Date of Birth *":
+  - /placeholder: MM/DD/YYYY
+- button "Choose date"
+- heading "*Please enter patient Date of Birth to proceed" [level=6]
+- combobox "Gender *":
+  - paragraph: Gender *
+- heading "*Please enter patient Gender to proceed" [level=6]
+- text: Email *
+- textbox "Email *"
+- heading "*Email is required" [level=6]
+- text: Phone *
+- spinbutton "Phone *"
+- heading "*Phone number is required" [level=6]
+- text: Address1 *
+- textbox "Address1 *"
+- heading "*Street Address is required" [level=6]
+- text: Address2 (Optional)
+- textbox "Address2 (Optional)"
+- text: City *
+- textbox "City *"
+- heading "*City is required" [level=6]
+- combobox "State *"
+- button "Open"
+- heading "*State selection is required" [level=6]
+- text: Home Zip *
+- textbox "Home Zip *"
+- heading "*Home Zip is required" [level=6]
+- checkbox
+- paragraph: I consent to receive marketing text messages from Kronson Medical Corporation DBA Kronson Vein Institute at the phone number provided. Frequency may vary. Message & data rates may apply. Call 626-254-2287 for assistance, reply STOP to opt out.
+- checkbox
+- paragraph: I consent to receive non-marketing text messages from Kronson Medical Corporation DBA Kronson Vein Institute about my appointment reminders, scheduling confirmations, and post-appointment follow-ups, etc. Frequency may vary. Message & data rates may apply. Call 626-254-2287 for assistance, reply STOP to opt out.
+- paragraph:
+  - link "Privacy Policy":
+    - /url: https://www.kronsonveininstitute.com/privacy-policy/
+  - text: "|"
+  - link "Terms and Conditions":
+    - /url: https://www.kronsonveininstitute.com/terms-and-conditions/
+- button "Book Now"
+```
+
+# Test source
+
+```ts
+  148 | 
+  149 |     // test.describe('State dropdown', () => {
+  150 | 
+  151 |     // test('TC16 — selects MI-Michigan', async ({ patientPage }) => {
+  152 |     //     await patientPage.selectState('MI-Michigan');
+  153 |     //     await expect(patientPage.stateInput).toHaveValue('MI-Michigan');
+  154 |     // });
+  155 | 
+  156 |     // test('TC17 — selects CA-California', async ({ patientPage }) => {
+  157 |     //     await patientPage.selectState('CA-California');
+  158 |     //     await expect(patientPage.stateInput).toHaveValue('CA-California');
+  159 |     // });
+  160 | 
+  161 |     // test('TC18 — selects TX-Texas', async ({ patientPage }) => {
+  162 |     //     await patientPage.selectState('TX-Texas');
+  163 |     //     await expect(patientPage.stateInput).toHaveValue('TX-Texas');
+  164 |     // });
+  165 | 
+  166 |     //     test('TC19 — filters options by typed text', async ({ patientPage }) => {
+  167 |     //         await patientPage.stateInput.click();
+  168 |     //         await patientPage.stateInput.clear();
+  169 |     //         await patientPage.stateInput.pressSequentially('Mich', { delay: 50 });
+  170 |     //         await expect(
+  171 |     //             patientPage.page.locator('[role="option"]').filter({ hasText: 'MI-Michigan' }).first()
+  172 |     //         ).toBeVisible();
+  173 |     //     });
+  174 | 
+  175 |     // });
+  176 | 
+  177 |     // // ── 6. REFERRAL ───────────────────────────────────────────────────────────
+  178 | 
+  179 |     // test.describe('How Did You Hear About Us', () => {
+  180 | 
+  181 |     //     const referralOptions = [
+  182 |     //         'Facebook', 'Friend/Relative', 'Google',
+  183 |     //         'Physician Coordinator', 'WJR', '95.5 WKQI', '106.7 WLLZ',
+  184 |     //     ];
+  185 | 
+  186 |     //     for (const option of referralOptions) {
+  187 |     //         test(`TC — selects "${option}"`, async ({ patientPage }) => {
+  188 |     //             await patientPage.selectReferral(option);
+  189 |     //             await expect(patientPage.referralInput).toHaveValue(option);
+  190 |     //         });
+  191 |     //     }
+  192 | 
+  193 |     //     test('TC20 — selecting Doctor shows Doctor Name field', async ({ patientPage }) => {
+  194 |     //         await patientPage.selectReferral('Doctor');
+  195 |     //         await expect(patientPage.doctorName).toBeVisible();
+  196 |     //     });
+  197 | 
+  198 |     //     test('TC21 — selecting non-Doctor hides Doctor Name field', async ({ patientPage }) => {
+  199 |     //         await patientPage.selectReferral('Google');
+  200 |     //         await expect(patientPage.doctorName).not.toBeVisible();
+  201 |     //     });
+  202 | 
+  203 |     //     test('TC22 — Doctor Name field accepts text', async ({ patientPage }) => {
+  204 |     //         await patientPage.selectReferral('Doctor');
+  205 |     //         await patientPage.selectReferralOther('Dr. Smith');
+  206 |     //         await expect(patientPage.doctorName).toHaveValue('Dr. Smith');
+  207 |     //     });
+  208 | 
+  209 |     // });
+  210 | 
+  211 |     // // ── 7. SMS CONSENT ────────────────────────────────────────────────────────
+  212 | 
+  213 |     // test.describe('SMS consent checkbox', () => {
+  214 | 
+  215 |     //     test('TC23 — unchecked by default', async ({ patientPage }) => {
+  216 |     //         await expect(patientPage.smsConsent).not.toBeChecked();
+  217 |     //     });
+  218 | 
+  219 |     //     test('TC24 — clicking MUI span checks the box', async ({ patientPage }) => {
+  220 |     //         await patientPage.checkSmsConsent();
+  221 |     //         await expect(patientPage.smsConsent).toBeChecked();
+  222 |     //     });
+  223 | 
+  224 |     //     test('TC25 — calling twice stays checked', async ({ patientPage }) => {
+  225 |     //         await patientPage.checkSmsConsent();
+  226 |     //         await patientPage.checkSmsConsent();
+  227 |     //         await expect(patientPage.smsConsent).toBeChecked();
+  228 |     //     });
+  229 | 
+  230 |     // });
+  231 | 
+  232 |     // // ── 8. VALIDATION ─────────────────────────────────────────────────────────
+  233 | 
+  234 |     test.describe('Form validation', () => {
+  235 | 
+  236 |         test('TC26 — empty form shows required errors', async ({ patientPage }) => {
+  237 |             await patientPage.submit();
+  238 |             await expect(
+  239 |                 patientPage.page.locator('[class*="Mui-error"]').first()
+  240 |             ).toBeVisible({ timeout: 5_000 });
+  241 |         });
+  242 | 
+  243 |         test('TC27 — partial form still shows errors', async ({ patientPage }) => {
+  244 |             await patientPage.firstName.fill('John');
+  245 |             await patientPage.submit();
+  246 |             await expect(
+  247 |                 patientPage.page.locator('[class*="Mui-error"]').first()
+> 248 |             ).toBeVisible({ timeout: 5_000 });
+      |               ^ Error: expect(locator).toBeVisible() failed
+  249 |         });
+  250 | 
+  251 |         test('TC28 — invalid email shows validation error', async ({ patientPage }) => {
+  252 |             await patientPage.fillBasicInfo({ ...VALID_PATIENT.basicInfo, email: 'not-an-email' });
+  253 |             await patientPage.submit();
+  254 |             await expect(
+  255 |                 patientPage.page.locator('[class*="Mui-error"]').first()
+  256 |             ).toBeVisible({ timeout: 5_000 });
+  257 |         });
+  258 | 
+  259 |         test('TC29 — Book Now button is visible and enabled', async ({ patientPage }) => {
+  260 |             await expect(patientPage.submitBtn).toBeVisible();
+  261 |             await expect(patientPage.submitBtn).toBeEnabled();
+  262 |         });
+  263 | 
+  264 |     });
+  265 | 
+  266 |     // ── 9. FULL FORM VARIATIONS ───────────────────────────────────────────────
+  267 | 
+  268 |     test.describe('Full form variations', () => {
+  269 | 
+  270 |         test('TC30 — Female gender selection', async ({ patientPage }) => {
+  271 |             await patientPage.selectGender('Female');
+  272 |             await expect(patientPage.genderTrigger).toContainText('Female');
+  273 |         });
+  274 | 
+  275 |         if (hasReferral) {
+  276 |             test('TC30b — Female gender + Facebook referral', async ({ patientPage }) => {
+  277 |                 await patientPage.fillAll({ ...VALID_PATIENT, gender: 'Female', referral: 'Facebook' });
+  278 |                 await expect(patientPage.genderTrigger).toContainText('Female');
+  279 |                 await expect(patientPage.referralInput).toHaveValue('Facebook');
+  280 |             });
+  281 | 
+  282 |             test('TC31 — Doctor referral fills Doctor Name', async ({ patientPage }) => {
+  283 |                 await patientPage.fillAll({ ...VALID_PATIENT, referral: 'Doctor', referralOther: 'Dr. Johnson' });
+  284 |                 await expect(patientPage.referralInput).toHaveValue('Doctor');
+  285 |                 await expect(patientPage.doctorName).toHaveValue('Dr. Johnson');
+  286 |             });
+  287 | 
+  288 |             test('TC33 — Friend/Relative referral', async ({ patientPage }) => {
+  289 |                 await patientPage.fillAll({ ...VALID_PATIENT, referral: 'Friend/Relative' });
+  290 |                 await expect(patientPage.referralInput).toHaveValue('Friend/Relative');
+  291 |             });
+  292 |         }
+  293 | 
+  294 |         if (hasSmsConsent) {
+  295 |             test('TC32 — smsConsent false stays unchecked', async ({ patientPage, page }) => {
+  296 |                 await patientPage.fillAll({ ...VALID_PATIENT, smsConsent: false });
+  297 |                 await expect(page.locator('input[type="checkbox"]').first()).not.toBeChecked();
+  298 |             });
+  299 |         }
+  300 | 
+  301 |     });
+  302 | }
+  303 | 
+  304 | export { runPatientInfoCases };
+```

@@ -1,0 +1,21 @@
+Reason selected: Skin Problem
+Service type selected: Acne
+TNDI date clicked
+TNDI time clicked
+Holder DOM debug: {
+  "muiSelectSelect": 0,
+  "muiInputBaseInput": 5,
+  "ariahaspopup": 0,
+  "ariahaspopupList": 0,
+  "roleCombobox": 3,
+  "divRoleCombobox": 0,
+  "inputRoleCombobox": 3,
+  "roleButton": 0,
+  "nativeSelect": 0,
+  "holderText": [
+    "LABEL.MuiFormLabel-root MuiInputLabel-root MuiInputLabel-formContr",
+    "SPAN."
+  ]
+}
+Holder trigger found with candidate index 4
+Primary Insurance Holder set to: Self
