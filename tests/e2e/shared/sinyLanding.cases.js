@@ -191,9 +191,9 @@ export function runSINYLandingCases(test, expect, opts = {}) {
                 await landingPage.page.locator('[role="option"]')
                     .filter({ hasText: altReason }).first().click();
 
-                // Service type must reset to empty (confirmed by screenshot: shows placeholder)
-                const after = await landingPage.serviceTypeDropdown.inputValue();
-                expect(after).toBe('');
+                // Service type must reset to empty after reason change.
+                // Use toHaveValue with timeout instead of immediately reading — CI is slower.
+                await expect(landingPage.serviceTypeDropdown).toHaveValue('', { timeout: 8_000 });
             });
         });
 

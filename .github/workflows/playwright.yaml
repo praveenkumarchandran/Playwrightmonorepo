@@ -13,10 +13,34 @@ on:
   schedule:
     - cron: "0 6 * * *"
   workflow_dispatch:
+    inputs:
+      project:
+        description: 'Project to run'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - siny-medical
+          - siny-cosmetic
+          - tndi
+          - clarus
+          - hopemark
+          - kronson
+      grep:
+        description: 'Run only tests matching this pattern (e.g. TC-INS, TC-PI-33)'
+        required: false
+        default: ''
 
 jobs:
   # ── SINY tests — run on every push (dev, stage, main) ────────────────────
   test-siny:
+    # Skip if manual trigger selected a non-SINY project
+    if: |
+      github.event_name != 'workflow_dispatch' ||
+      inputs.project == 'all' ||
+      inputs.project == 'siny-medical' ||
+      inputs.project == 'siny-cosmetic'
     runs-on: ubuntu-latest
     timeout-minutes: 60
     strategy:
@@ -36,7 +60,14 @@ jobs:
       - run: npx playwright install --with-deps chromium
 
       - name: Run ${{ matrix.project }}
-        run: npx playwright test --project=${{ matrix.project }}
+        # Skip individual matrix jobs that don't match the selected project
+        if: inputs.project == 'all' || inputs.project == '' || inputs.project == matrix.project
+        run: |
+          CMD="npx playwright test --project=${{ matrix.project }}"
+          if [ -n "${{ inputs.grep }}" ]; then
+            CMD="$CMD --grep \"${{ inputs.grep }}\""
+          fi
+          eval $CMD
         env:
           CI: true
 
@@ -49,7 +80,12 @@ jobs:
 
   # ── Full suite — only on main / stage / PRs (not dev) ────────────────────
   test-full:
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/stage' || github.event_name == 'pull_request' || github.event_name == 'schedule'
+    if: |
+      (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/stage' ||
+       github.event_name == 'pull_request' || github.event_name == 'schedule') ||
+      (github.event_name == 'workflow_dispatch' &&
+       (inputs.project == 'all' || inputs.project == 'tndi' ||
+        inputs.project == 'clarus' || inputs.project == 'hopemark' || inputs.project == 'kronson'))
     runs-on: ubuntu-latest
     timeout-minutes: 60
     strategy:
@@ -69,7 +105,13 @@ jobs:
       - run: npx playwright install --with-deps chromium
 
       - name: Run ${{ matrix.project }}
-        run: npx playwright test --project=${{ matrix.project }}
+        if: inputs.project == 'all' || inputs.project == '' || inputs.project == matrix.project
+        run: |
+          CMD="npx playwright test --project=${{ matrix.project }}"
+          if [ -n "${{ inputs.grep }}" ]; then
+            CMD="$CMD --grep \"${{ inputs.grep }}\""
+          fi
+          eval $CMD
         env:
           CI: true
 

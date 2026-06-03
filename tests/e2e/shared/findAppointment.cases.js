@@ -90,7 +90,12 @@ export function runFindAppointmentCases(test, expect, opts = {}) {
             test('TC-FA-09 — unchecking both Male and Female shows no provider cards', async ({ findAppointmentPage }) => {
                 await findAppointmentPage.maleCheckbox.uncheck({ force: true });
                 await findAppointmentPage.femaleCheckbox.uncheck({ force: true });
-                await findAppointmentPage.page.waitForTimeout(1_000);
+                // Wait until "Show More" disappears (cards removed) rather than a fixed timeout
+                // CI machines are slower — polling is more reliable than waitForTimeout
+                await findAppointmentPage.page.waitForFunction(
+                    () => !document.body.innerText.includes('Show More'),
+                    { timeout: 10_000 }
+                ).catch(() => {}); // if already 0, waitForFunction resolves immediately
                 const count = await findAppointmentPage.getProviderCardCount();
                 expect(count).toBe(0);
             });
