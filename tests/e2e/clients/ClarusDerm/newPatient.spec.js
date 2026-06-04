@@ -40,6 +40,9 @@ runLandingCases(test, expect, {
     phoneNumber:  CLIENTS.CLARUS_DERM.phone,    // '877-408-2431'
     locationName: 'Clarus Dermatology',
     anyUrl:       'https://stage.setter.layline.live/clarusdermatology/1/any/landing',
+    // All service options from landing page screenshot (Acne, BOTOX, Full Body Skin Exam, Rash)
+    // Each is tested: select → New Patient → findappointment → providers OR no-availability
+    allServiceTypes: ['Acne', 'BOTOX', 'Full Body Skin Exam', 'Rash'],
 });
 
 // ── No intake step for Clarus ─────────────────────────────────────────────────
@@ -49,6 +52,7 @@ runLandingCases(test, expect, {
 runFindAppointmentCases(test, expect, {
     expectedServiceType: CLIENTS.CLARUS_DERM.slotFilters.reason,  // 'Acne'
     nextPageAfterSlot:   'insurance',
+    // Service variants tested from landing page (TC-LAND-SVC in runLandingCases)
 });
 
 // Verify "Your Appointment" panel on insurance page shows what was selected

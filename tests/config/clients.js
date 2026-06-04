@@ -115,6 +115,7 @@ export const CLIENTS = {
     HOPEMARK: {
         id: 134,
         name: 'Hopemark Health',
+        phone: '630-912-0025',  // confirmed from screenshot
         url: 'https://stage.setter.layline.live/hopemarkhealth/1/downtown/landing',
         newPatientFlow:      ['landing', 'slotFilter', 'slotPick', 'intake', 'insurance', 'patientInfo'],
         existingPatientFlow: ['existingLanding'],
@@ -132,20 +133,22 @@ export const CLIENTS = {
     },
 
     // ── 160 — FREEDMAN ENT ────────────────────────────────────────────────────
+    // Confirmed from screenshots: TNDI-style flat date+time, optional free-text intake,
+    // same 5 insurance types, Next+Skip buttons, Location+Address in appointment summary.
+    // Only 1 location (Freedman ENT Downriver). URL uses /test/1/ path.
     FREEDMAN: {
         id: 160,
         name: 'Freedman ENT',
-        url: 'https://stage.setter.layline.live/freedman/1/freedmanentdownriver/landing',
-        newPatientFlow: ['landing', 'slotFilter', 'slotPick', 'insurance', 'patientInfo'],
+        phone: '(734) 479-7310',  // confirmed from screenshot
+        url: 'https://stage.setter.layline.live/test/1/freedmanentdownriver/landing',
+        // Flow confirmed: slot → intake (optional) → insurance → patientInfo
+        newPatientFlow: ['landing', 'slotPick', 'intake', 'insurance', 'patientInfo'],
         existingPatientFlow: ['existingLanding'],
         existingPatient: { firstName: 'AmirthamJ', lastName: 'S', dob: '05/05/2026' },
-        reason: 'TODO: reason type',
-        slotType: 'tndi',
-        slotFilters: {
-            location: 'TODO: location name as shown in dropdown',
-            reason: null,
-            provider: null,
-        },
+        reason: '15 MIN OFFICE SURGERY',  // confirmed from findappointment screenshot
+        intakeType: 'siny',  // optional free-text textarea ("Describe your symptoms or concerns")
+        slotType: 'tndi',    // flat date+time layout (same as TNDI)
+        slotFilters: null,   // only 1 location, pre-filled from URL slug
         defaultInsurance: 'Self-pay',
         filterNeedsContinue: false,
     },
@@ -156,6 +159,7 @@ export const CLIENTS = {
     KRONSON: {
         id: 149,
         name: 'Kronson Vein Institute',
+        phone: '626-254-2287',  // confirmed from screenshot
         url: 'https://stage.setter.layline.live/kronsonveininstitute/1/arcadia/landing',
         newPatientFlow: ['landing', 'slotPick', 'insurance', 'patientInfo'],
         existingPatientFlow: ['existingLanding'],

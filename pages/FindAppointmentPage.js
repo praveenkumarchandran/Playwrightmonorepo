@@ -33,12 +33,15 @@ export class FindAppointmentPage {
         await this.locationDropdown.waitFor({ state: 'visible', timeout: 15_000 });
 
         // 2. Detect which layout the client uses:
-        //    SINY / Clarus: 3 comboboxes (Location, ServiceType, Provider) + "Show More" per provider card
-        //    TNDI / TNDI-style: 2 comboboxes (Location, Reason) + flat date strip + "Available Time Slots"
-        const hasSINYLayout = await this.page.waitForFunction(() => {
-            const inputs = document.querySelectorAll('input[role="combobox"]');
-            return inputs.length >= 3 && inputs[2]?.value?.trim() !== '';
-        }, { timeout: 5_000 }).then(() => true).catch(() => false);
+        //    SINY / Clarus / Kronson: "Basic Search" filter panel + provider cards with "Show More"
+        //                              (Kronson has only 2 filter dropdowns, not 3 — so we check
+        //                               for "Basic Search" text instead of combobox count)
+        //    TNDI-style: "Change Filters" panel + flat date strip + "Available Time Slots"
+        const hasSINYLayout = await this.page.waitForFunction(() =>
+            document.body.innerText.includes('Basic Search') ||
+            document.body.innerText.includes('Show More') ||
+            /no online availability|no availability|please call/i.test(document.body.innerText),
+        { timeout: 5_000 }).then(() => true).catch(() => false);
 
         if (hasSINYLayout) {
             // Either: provider cards with "Show More" links (slots available)
@@ -84,9 +87,11 @@ export class FindAppointmentPage {
     }
 
     // Open a dropdown and force-click a gray option to trigger the popup.
-    // Returns the selected option text, or null if no gray option exists.
+    // Returns the selected option text, or null if the dropdown doesn't exist or has no gray options.
+    // Self-healing: Kronson has no Provider dropdown — isVisible check returns null gracefully.
     async triggerGrayOption(dropdown) {
-        await dropdown.waitFor({ state: 'visible', timeout: 10_000 });
+        const isVisible = await dropdown.isVisible({ timeout: 3_000 }).catch(() => false);
+        if (!isVisible) return null; // dropdown absent for this client (e.g. Kronson has no Provider filter)
         await dropdown.click();
         const text = await this._findGrayOptionText();
         if (!text) {
@@ -176,6 +181,37 @@ export class FindAppointmentPage {
         await slot.waitFor({ state: 'visible', timeout: 10_000 });
         await slot.click();
         console.log('Time slot clicked');
+    }
+
+    // Changes the Appointment Reason/Service Type filter to the given value.
+    // Works for both MUI Autocomplete (SINY) and MUI Select (Clarus, Hopemark).
+    // After selection, waits for the page to update (new providers or no-availability message).
+    async selectServiceType(service) {
+        await this.serviceTypeDropdown.click();
+
+        // If a listbox already opened (MUI Select), skip typing and go straight to picking
+        const listboxOpened = await this.page.locator('[role="listbox"]')
+            .isVisible({ timeout: 1_000 }).catch(() => false);
+
+        if (!listboxOpened) {
+            // MUI Autocomplete — clear and type to filter
+            await this.serviceTypeDropdown.clear();
+            await this.serviceTypeDropdown.pressSequentially(service.substring(0, 6), { delay: 20 });
+        }
+
+        const option = this.page.locator('[role="option"]').filter({ hasText: service }).first();
+        await option.waitFor({ state: 'visible', timeout: 10_000 });
+        await option.click({ force: true });
+        console.log(`Service type changed to: ${service}`);
+
+        // Wait for the page to reflect the new service — either provider cards appear
+        // OR the "no online availability" message shows. This replaces a fixed timeout
+        // which was too short (race condition: providers loaded after assertion ran).
+        await this.page.waitForFunction(
+            () => document.body.innerText.includes('Show More') ||
+                  /no online availability|no availability|please call/i.test(document.body.innerText),
+            { timeout: 15_000 }
+        ).catch(() => {}); // graceful — some states may not match either
     }
 
     // Clicks the Continue / Next button after a slot is selected.

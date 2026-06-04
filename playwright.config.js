@@ -6,6 +6,7 @@ export default defineConfig({
     reporter: [
         ['list'],
         ['allure-playwright'],
+        ['json', { outputFile: 'test-results/results.json' }],  // parsed by email-report script
     ],
 
     // Global test timeout — individual steps have their own timeouts via waitFor / expect.
@@ -77,11 +78,13 @@ export default defineConfig({
 
         // ── Hopemark Health ───────────────────────────────────────────────────
         // Flow: Landing → SlotFilter → Slot → Intake → Insurance → PatientInfo
+        // retries: 1 — staging server occasionally returns "Oops! Something went wrong"
         {
             name: 'hopemark',
             testDir: './tests/e2e/clients/Hopemark',
             timeout: 120_000,
             workers: 1,
+            retries: 1,
         },
 
         // ── Freedman ENT ──────────────────────────────────────────────────────

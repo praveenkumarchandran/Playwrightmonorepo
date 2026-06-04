@@ -1,0 +1,4 @@
+Reason selected: Psychiatric Evaluation (Virtual)
+✅ Selected (dropdown): Psychiatric Evaluation (Virtual)
+Service type changed to: Psychiatric Evaluation (Virtual)
+"Psychiatric Evaluation (Virtual)": 1 provider card(s) visible

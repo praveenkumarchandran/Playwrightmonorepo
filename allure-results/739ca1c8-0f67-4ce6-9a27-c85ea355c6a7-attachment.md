@@ -1,0 +1,256 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: tests\e2e\clients\SINY\medical.spec.js >> SINY Landing — gray service / location >> All top-level reasons from landing >> TC-LAND-S16 — "Cosmetic Consultation" → New Patient navigates to Intake Questions
+- Location: tests\e2e\shared\sinyLanding.cases.js:238:17
+
+# Error details
+
+```
+TimeoutError: page.waitForURL: Timeout 20000ms exceeded.
+=========================== logs ===========================
+waiting for navigation until "load"
+============================================================
+```
+
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - banner [ref=e5]:
+    - generic [ref=e7]:
+      - img "logo" [ref=e9]
+      - heading "718-491-5800" [level=6] [ref=e12]
+  - generic [ref=e15]:
+    - generic [ref=e17]:
+      - paragraph [ref=e18]: SINY Dermatology & Cosmetic Surgery
+      - generic [ref=e19]:
+        - paragraph [ref=e20]: 7901 4th Ave,
+        - paragraph [ref=e21]: Brooklyn, NY 11209
+    - generic [ref=e23]:
+      - generic:
+        - heading [level=3]
+      - generic [ref=e24]:
+        - heading "What is your reason for scheduling?" [level=5] [ref=e25]
+        - generic [ref=e28]:
+          - combobox "Visit reason" [ref=e29]: Cosmetic Consultation
+          - button "Open" [ref=e31] [cursor=pointer]:
+            - img [ref=e32]
+          - group
+      - generic [ref=e34]:
+        - heading "Have you visited us before?" [level=5] [ref=e35]
+        - generic [ref=e36]:
+          - button "Existing Patient" [ref=e37] [cursor=pointer]
+          - button "New Patient" [active] [ref=e38] [cursor=pointer]: New Patient
+      - generic [ref=e40]:
+        - heading "Powered by" [level=6] [ref=e41]
+        - img "MUlogo" [ref=e42]
+```
+
+# Test source
+
+```ts
+  143 | 
+  144 |         test.describe('Negative — valid service skips location step', () => {
+  145 | 
+  146 |             test('TC-LAND-S09 — selecting a valid service does NOT show Location dropdown', async ({ landingPage }) => {
+  147 |                 await landingPage._selectReason(reason);
+  148 |                 await landingPage._openServiceTypeAndSelectValid();
+  149 |                 const locationVisible = await landingPage.locationDropdown
+  150 |                     .isVisible({ timeout: 3_000 })
+  151 |                     .catch(() => false);
+  152 |                 expect(locationVisible).toBe(false);
+  153 |             });
+  154 | 
+  155 |             test('TC-LAND-S10 — service type combobox has no pre-selected value on load', async ({ landingPage }) => {
+  156 |                 await landingPage._selectReason(reason);
+  157 |                 await expect(landingPage.serviceTypeDropdown).toBeVisible({ timeout: 10_000 });
+  158 |                 const value = await landingPage.serviceTypeDropdown.inputValue();
+  159 |                 expect(value).toBe('');
+  160 |             });
+  161 |         });
+  162 | 
+  163 |         // ── Edge cases ────────────────────────────────────────────────────────
+  164 | 
+  165 |         test.describe('Edge cases', () => {
+  166 | 
+  167 |             if (popupService) {
+  168 |                 test('TC-LAND-S11 — after closing popup, selecting valid service re-enables New Patient', async ({ landingPage }) => {
+  169 |                     await pathBSetup(landingPage);
+  170 |                     await landingPage.unavailabilityPopup.waitFor({ state: 'visible', timeout: 10_000 });
+  171 |                     await landingPage.closeUnavailabilityPopup();
+  172 |                     // After dismissing, user can pick a valid service and proceed
+  173 |                     await landingPage._openServiceTypeAndSelectValid();
+  174 |                     await expect(landingPage.newPatientBtn).toBeEnabled({ timeout: 5_000 });
+  175 |                 });
+  176 |             }
+  177 | 
+  178 |             test('TC-LAND-S12 — changing reason resets the service type selection', async ({ landingPage }) => {
+  179 |                 // Select a valid service so the field has a non-empty value
+  180 |                 await landingPage._selectReason(reason);
+  181 |                 await landingPage._openServiceTypeAndSelectValid();
+  182 |                 const before = await landingPage.serviceTypeDropdown.inputValue();
+  183 |                 expect(before).not.toBe('');
+  184 | 
+  185 |                 // Change to an alternate reason — use accessible-name selector to avoid the
+  186 |                 // strict-mode violation when both inputs share id="serviceType-select-box"
+  187 |                 const altReason = reason === 'Cosmetic Procedure' ? 'Skin Problem' : 'Cosmetic Procedure';
+  188 |                 const reasonInput = landingPage.page.getByRole('combobox', { name: /visit reason/i });
+  189 |                 await reasonInput.fill(altReason);
+  190 |                 await landingPage.page.locator('[role="option"]')
+  191 |                     .filter({ hasText: altReason }).first()
+  192 |                     .waitFor({ state: 'visible', timeout: 10_000 });
+  193 |                 await landingPage.page.locator('[role="option"]')
+  194 |                     .filter({ hasText: altReason }).first().click();
+  195 | 
+  196 |                 // Service type must reset to empty after reason change.
+  197 |                 // Use toHaveValue with timeout instead of immediately reading — CI is slower.
+  198 |                 await expect(landingPage.serviceTypeDropdown).toHaveValue('', { timeout: 8_000 });
+  199 |             });
+  200 |         });
+  201 | 
+  202 |         // ── URL-based layout — info panel visibility ──────────────────────────
+  203 |         // Screenshots confirmed two layouts:
+  204 |         //   Slug URL (/sinydermatologybayridge/landing): left info card visible
+  205 |         //     showing clinic name + address alongside the form card.
+  206 |         //   /any/ URL (/any/landing): no info card — just the centered form card.
+  207 | 
+  208 |         // ── Header phone number ───────────────────────────────────────────────
+  209 | 
+  210 |         if (phoneNumber) {
+  211 |             test('TC-LAND-S12 — header phone number is visible and correct', async ({ landingPage }) => {
+  212 |                 await expect(
+  213 |                     landingPage.page.getByText(phoneNumber, { exact: false }).first()
+  214 |                 ).toBeVisible({ timeout: 10_000 });
+  215 |             });
+  216 |         }
+  217 | 
+  218 |         // ── All service types from landing ────────────────────────────────────
+  219 |         // SINY flow: Landing → reason selection → New Patient → INTAKE (not findappointment directly)
+  220 |         // For each top-level reason: verify clicking New Patient reaches the intake page.
+  221 |         // Special case: "Telehealth" shows an inline error + disabled buttons (no navigation).
+  222 |         //
+  223 |         // Confirmed from screenshots:
+  224 |         //   Direct (no sub-service): Cosmetic Consultation, Hair Loss, Routine Skin Screening
+  225 |         //   Sub-service needed:      Cosmetic Procedure, Skin Problem
+  226 |         //   Blocked (error + disabled): Telehealth
+  227 | 
+  228 |         test.describe('All top-level reasons from landing', () => {
+  229 | 
+  230 |             // ── Reasons that navigate directly (no sub-service sub-dropdown) ──
+  231 |             const directReasons = [
+  232 |                 'Cosmetic Consultation',
+  233 |                 'Hair Loss',
+  234 |                 'Routine Skin Screening',
+  235 |             ];
+  236 | 
+  237 |             directReasons.forEach(svc => {
+  238 |                 test(`TC-LAND-S16 — "${svc}" → New Patient navigates to Intake Questions`, async ({ landingPage }) => {
+  239 |                     await landingPage._selectReason(svc);
+  240 |                     await landingPage.newPatientBtn.waitFor({ state: 'visible', timeout: 10_000 });
+  241 |                     await landingPage.newPatientBtn.click();
+  242 |                     // SINY always goes through Intake before findappointment
+> 243 |                     await landingPage.page.waitForURL(
+      |                                            ^ TimeoutError: page.waitForURL: Timeout 20000ms exceeded.
+  244 |                         url => url.toString().includes('intake'),
+  245 |                         { timeout: 20_000 }
+  246 |                     );
+  247 |                     console.log(`"${svc}": reached Intake Questions page ✓`);
+  248 |                 });
+  249 |             });
+  250 | 
+  251 |             // ── Telehealth — blocked on landing page ──────────────────────────
+  252 |             // Shows error: "Telehealth appointments cannot be booked online at this time."
+  253 |             // New Patient and Existing Patient buttons become DISABLED.
+  254 | 
+  255 |             test('TC-LAND-S17 — "Telehealth" shows an error message on the landing page', async ({ landingPage }) => {
+  256 |                 await landingPage._selectReason('Telehealth');
+  257 |                 await expect(
+  258 |                     landingPage.page.getByText(/cannot be booked online/i).first()
+  259 |                 ).toBeVisible({ timeout: 10_000 });
+  260 |                 console.log('Telehealth: error message "cannot be booked online" confirmed ✓');
+  261 |             });
+  262 | 
+  263 |             test('TC-LAND-S18 — "Telehealth" disables the New Patient and Existing Patient buttons', async ({ landingPage }) => {
+  264 |                 await landingPage._selectReason('Telehealth');
+  265 |                 // Buttons become disabled/grayed after selecting Telehealth
+  266 |                 const npBtn = landingPage.newPatientBtn;
+  267 |                 await npBtn.waitFor({ state: 'visible', timeout: 10_000 });
+  268 |                 const isDisabled = await npBtn.evaluate(btn =>
+  269 |                     btn.disabled ||
+  270 |                     btn.getAttribute('aria-disabled') === 'true' ||
+  271 |                     window.getComputedStyle(btn).opacity < '0.7'
+  272 |                 );
+  273 |                 expect(isDisabled).toBe(true);
+  274 |                 console.log('Telehealth: New Patient button is disabled ✓');
+  275 |             });
+  276 | 
+  277 |             // ── Skin Problem sub-services (Acne=available, Rash=available, others=gray) ──
+  278 |             const skinProblemServices = ['Acne', 'Rash'];
+  279 |             skinProblemServices.forEach(sub => {
+  280 |                 test(`TC-LAND-S19 — "Skin Problem → ${sub}" reaches Intake Questions`, async ({ landingPage }) => {
+  281 |                     await landingPage._selectReason('Skin Problem');
+  282 |                     await landingPage._selectServiceType(sub);
+  283 |                     await landingPage.newPatientBtn.waitFor({ state: 'visible', timeout: 10_000 });
+  284 |                     await landingPage.newPatientBtn.click();
+  285 |                     await landingPage.page.waitForURL(
+  286 |                         url => url.toString().includes('intake'),
+  287 |                         { timeout: 20_000 }
+  288 |                     );
+  289 |                     console.log(`"Skin Problem → ${sub}": reached Intake Questions ✓`);
+  290 |                 });
+  291 |             });
+  292 | 
+  293 |             // ── Cosmetic Procedure sub-services ──────────────────────────────
+  294 |             const cosmeticServices = ['Botox treatment', 'Laser hair Removal', 'Chemical Peel', 'Filler Treatment', 'Tattoo Removal'];
+  295 |             cosmeticServices.forEach(sub => {
+  296 |                 test(`TC-LAND-S20 — "Cosmetic Procedure → ${sub}" reaches Intake Questions`, async ({ landingPage }) => {
+  297 |                     await landingPage._selectReason('Cosmetic Procedure');
+  298 |                     await landingPage._selectServiceType(sub);
+  299 |                     await landingPage.newPatientBtn.waitFor({ state: 'visible', timeout: 10_000 });
+  300 |                     await landingPage.newPatientBtn.click();
+  301 |                     await landingPage.page.waitForURL(
+  302 |                         url => url.toString().includes('intake'),
+  303 |                         { timeout: 20_000 }
+  304 |                     );
+  305 |                     console.log(`"Cosmetic Procedure → ${sub}": reached Intake Questions ✓`);
+  306 |                 });
+  307 |             });
+  308 | 
+  309 |         });
+  310 | 
+  311 |         if (locationName && anyUrl) {
+  312 |             test.describe('Location info panel', () => {
+  313 | 
+  314 |                 test('TC-LAND-S13 — slug URL shows the location info panel with the clinic name', async ({ landingPage }) => {
+  315 |                     // The fixture already navigated to the slug URL — info panel must be visible
+  316 |                     const infoPanel = landingPage.page.getByText(locationName, { exact: false }).first();
+  317 |                     await expect(infoPanel).toBeVisible({ timeout: 10_000 });
+  318 |                 });
+  319 | 
+  320 |                 test('TC-LAND-S14 — /any/ URL hides the location info panel', async ({ landingPage }) => {
+  321 |                     // Navigate to the /any/ variant — no location slug → no info panel
+  322 |                     await landingPage.page.goto(anyUrl, { waitUntil: 'networkidle' });
+  323 |                     const infoPanel = landingPage.page.getByText(locationName, { exact: false }).first();
+  324 |                     await expect(infoPanel).not.toBeVisible({ timeout: 5_000 });
+  325 |                 });
+  326 | 
+  327 |                 test('TC-LAND-S15 — /any/ URL still shows the form (reason dropdown and patient buttons)', async ({ landingPage }) => {
+  328 |                     await landingPage.page.goto(anyUrl, { waitUntil: 'networkidle' });
+  329 |                     // The form card is always present regardless of URL
+  330 |                     await expect(landingPage.newPatientBtn).toBeVisible({ timeout: 10_000 });
+  331 |                     await expect(landingPage.existingPatientBtn).toBeVisible({ timeout: 10_000 });
+  332 |                 });
+  333 | 
+  334 |             });
+  335 |         }
+  336 | 
+  337 |     });
+  338 | }
+  339 | 
+```

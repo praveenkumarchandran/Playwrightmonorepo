@@ -15,9 +15,20 @@
  * @param {string}  [opts.anyUrl]            — the /any/ variant URL — enables URL panel tests
  * @param {string}  [opts.phoneNumber]       — expected phone number in the page header (e.g. '877-408-2431')
  *                                             When set, enables TC-LAND-12 header phone verification
+ * @param {string[]}[opts.allServiceTypes]   — all service reasons available on the landing page
+ *                                             When set, generates TC-LAND-SVC tests verifying each
+ *                                             service navigates to findappointment and shows
+ *                                             providers OR the "no online availability" message
  */
 export function runLandingCases(test, expect, opts = {}) {
-    const { reason, hasGating = true, locationName = null, anyUrl = null, phoneNumber = null } = opts;
+    const {
+        reason,
+        hasGating      = true,
+        locationName   = null,
+        anyUrl         = null,
+        phoneNumber    = null,
+        allServiceTypes = [],
+    } = opts;
 
     test.describe('Landing page', () => {
 
@@ -117,7 +128,62 @@ export function runLandingCases(test, expect, opts = {}) {
 
         });
 
-        // ── 5. HEADER PHONE NUMBER ────────────────────────────────────────────
+        // ── 5. ALL SERVICE TYPES — end-to-end from landing ───────────────────
+        // For clients with multiple service options, each service is selected on the
+        // landing page → New Patient clicked → findappointment page verified.
+        // Tests that each service navigates correctly and shows either providers
+        // OR the "no online availability" message.
+
+        if (allServiceTypes.length > 1) {
+            test.describe('Service type navigation from landing', () => {
+
+                allServiceTypes.forEach(service => {
+                    test(`TC-LAND-SVC — selecting "${service}" and clicking New Patient reaches find appointment`, async ({ landingPage }) => {
+                        // Select the service reason on landing page
+                        await landingPage._selectReason(service);
+                        await landingPage.newPatientBtn.waitFor({ state: 'visible', timeout: 10_000 });
+                        await landingPage.newPatientBtn.click();
+
+                        // Wait for findappointment URL
+                        await landingPage.page.waitForURL(
+                            url => url.toString().includes('findappointment'),
+                            { timeout: 20_000 }
+                        );
+
+                        // Wait for providers OR no-availability to appear.
+                        // "Basic Search" resolves too early (appears before data loads).
+                        // Must wait for actual content: "Show More" links or no-availability text.
+                        await landingPage.page.waitForFunction(
+                            () => document.body.innerText.includes('Show More') ||
+                                  /no online availability|no availability|please call/i.test(document.body.innerText) ||
+                                  // TNDI-style flat layout: wait for time slot buttons
+                                  document.body.innerText.includes('Available Time Slots'),
+                            { timeout: 25_000 }
+                        ).catch(() => {});
+
+                        // Verify: providers visible OR no-availability message
+                        const hasShowMore = await landingPage.page
+                            .getByText(/^Show More$/).count() > 0;
+                        const hasTimeSlots = await landingPage.page
+                            .locator('button').filter({ hasText: /\d{1,2}:\d{2}\s*(AM|PM)/i }).count() > 0;
+                        const noAvail = /no online availability|no availability|please call/i.test(
+                            await landingPage.page.evaluate(() => document.body.innerText)
+                        );
+
+                        expect(hasShowMore || hasTimeSlots || noAvail).toBe(true);
+
+                        if (hasShowMore || hasTimeSlots) {
+                            console.log(`"${service}": providers/slots visible on findappointment ✓`);
+                        } else {
+                            console.log(`"${service}": no-availability message shown ✓`);
+                        }
+                    });
+                });
+
+            });
+        }
+
+        // ── 6. HEADER PHONE NUMBER ────────────────────────────────────────────
         // Every client shows a phone number in the page header (top-right corner).
         // Confirms the correct client config is loaded.
 
@@ -129,7 +195,7 @@ export function runLandingCases(test, expect, opts = {}) {
             });
         }
 
-        // ── 6. LOCATION INFO PANEL (URL-based) ───────────────────────────────
+        // ── 7. LOCATION INFO PANEL (URL-based) ───────────────────────────────
         // Confirmed for Clarus and SINY:
         //   Slug URL  (e.g. /minnetonka/landing): left info panel visible with clinic name
         //   /any/ URL (e.g. /any/landing)       : no info panel — just the form

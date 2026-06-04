@@ -1,0 +1,4 @@
+Reason selected: Cosmetic Procedure
+Service type selected: Botox treatment
+Popup dismissed via "Schedule Procedure"
+"Cosmetic Procedure → Botox treatment": navigated away from landing ✓  (url: https://stage.setter.layline.live/sinydermatology/1/sinydermatologybayridge/intakequestion)

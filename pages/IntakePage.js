@@ -22,9 +22,18 @@ export class IntakePage {
     }
 
     async waitForLoad() {
+        // Wait for MUI spinner to detach (TNDI/SINY style)
         await this.spinner
             .waitFor({ state: 'detached', timeout: 20_000 })
             .catch(() => { });
+
+        // Also wait for "Loading..." text to disappear — Hopemark shows a plain text
+        // loading indicator that's separate from the MUI spinner
+        await this.page.waitForFunction(
+            () => !document.body.innerText.includes('Loading...'),
+            { timeout: 15_000 }
+        ).catch(() => { });
+
         // Wait for TNDI symptoms input, Hopemark conditions, or SINY textarea
         await Promise.race([
             this.symptomsInput.waitFor({ state: 'visible', timeout: 15_000 }),

@@ -66,8 +66,9 @@ export function runExistingPatientCases(test, expect, opts = {}) {
 
             test('TC-EP-08 — submitting valid credentials navigates away from the identity form', async ({ existingPatientPage }) => {
                 await existingPatientPage.search(firstName, lastName, dob);
-                // Identity form should no longer be visible after a successful search
-                await expect(existingPatientPage.firstNameInput).not.toBeVisible({ timeout: 15_000 });
+                // Check the "Find Appointment" button disappears — it is unique to the identity form.
+                // Using firstNameInput is unreliable because patient info pages also have firstName fields.
+                await expect(existingPatientPage.findBtn).not.toBeVisible({ timeout: 15_000 });
             });
 
         });
@@ -146,13 +147,16 @@ export function runExistingPatientCases(test, expect, opts = {}) {
                 await expect(existingPatientPage.newPatientBtn).toBeVisible({ timeout: 10_000 });
             });
 
-            test('TC-NP-02 — clicking New Patient after failed search redirects to find appointment page', async ({ existingPatientPage }) => {
+            test('TC-NP-02 — clicking New Patient after failed search navigates to booking flow', async ({ existingPatientPage }) => {
                 await existingPatientPage.search('InvalidXYZ999', 'InvalidXYZ999', dob);
                 await existingPatientPage.newPatientBtn.waitFor({ state: 'visible', timeout: 10_000 });
                 await existingPatientPage.newPatientBtn.click();
                 await existingPatientPage.page.waitForLoadState('networkidle', { timeout: 20_000 });
                 await expect(existingPatientPage.firstNameInput).not.toBeVisible({ timeout: 15_000 });
-                expect(existingPatientPage.page.url()).toContain('/findappointment');
+                // Some clients (SINY) go to intake first; others go directly to findappointment
+                const url = existingPatientPage.page.url();
+                const onBookingFlow = url.includes('/findappointment') || url.includes('/intake');
+                expect(onBookingFlow).toBe(true);
             });
 
             test('TC-NP-03 — New Patient button is enabled after it appears', async ({ existingPatientPage }) => {

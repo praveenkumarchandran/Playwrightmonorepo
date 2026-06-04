@@ -52,6 +52,8 @@ function runIntakeCases(test, expect, opts = {}) {
     test.describe('UI-side disabled state', () => {
 
         test('TC-INT-04 — button has disabled attribute before any input', async ({ intakePage }) => {
+            // Wait briefly for page to fully render before checking disabled state
+            await intakePage.continueBtn.waitFor({ state: 'visible', timeout: 10_000 });
             const isDisabled = await intakePage.continueBtn.evaluate(btn =>
                 btn.disabled || btn.getAttribute('aria-disabled') === 'true'
             );

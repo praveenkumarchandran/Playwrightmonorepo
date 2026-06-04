@@ -15,7 +15,12 @@
  *   instead of provider cards. Skips slot-interaction tests and verifies the message.
  */
 export function runFindAppointmentCases(test, expect, opts = {}) {
-    const { expectedServiceType, nextPageAfterSlot } = opts;
+    const {
+        expectedServiceType,
+        nextPageAfterSlot,
+        hasProviderDropdown = true,   // false for Kronson which has only Location + Reason filters
+        allServiceTypes     = [],     // all service options to test individually (Clarus, Hopemark)
+    } = opts;
 
     // Helper — returns true when the page has no providers/slots and shows the
     // "no online availability" message. Used to skip or adjust assertions dynamically.
@@ -64,18 +69,24 @@ export function runFindAppointmentCases(test, expect, opts = {}) {
 
         test.describe('Filter dropdowns', () => {
 
-            test('TC-FA-01 — Location, Service Type and Provider dropdowns are visible', async ({ findAppointmentPage }) => {
+            test('TC-FA-01 — Location and Service Type dropdowns are visible', async ({ findAppointmentPage }) => {
                 await expect(findAppointmentPage.locationDropdown).toBeVisible();
                 await expect(findAppointmentPage.serviceTypeDropdown).toBeVisible();
-                await expect(findAppointmentPage.providerDropdown).toBeVisible();
+                // Provider dropdown only exists on clients with 3-filter layout (not Kronson)
+                if (hasProviderDropdown) {
+                    await expect(findAppointmentPage.providerDropdown).toBeVisible();
+                }
             });
 
             test('TC-FA-02 — Service Type matches the service selected on the landing page', async ({ findAppointmentPage }) => {
                 const value = await findAppointmentPage._getDropdownText(findAppointmentPage.serviceTypeDropdown);
-                expect(value).toMatch(new RegExp(expectedServiceType, 'i'));
+                // Escape regex special chars (e.g. Hopemark has parentheses in reason names)
+                const escaped = expectedServiceType.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                expect(value).toMatch(new RegExp(escaped, 'i'));
             });
 
             test('TC-FA-03 — Provider dropdown defaults to "Any Provider"', async ({ findAppointmentPage }) => {
+                if (!hasProviderDropdown) return; // Kronson has no Provider filter
                 const value = await findAppointmentPage._getDropdownText(findAppointmentPage.providerDropdown);
                 expect(value).toMatch(/any provider/i);
             });
@@ -131,6 +142,34 @@ export function runFindAppointmentCases(test, expect, opts = {}) {
                 await findAppointmentPage.showMoreLinks.first().waitFor({ state: 'visible', timeout: 10_000 });
                 const after = await findAppointmentPage.getProviderCardCount();
                 expect(after).toBe(before);
+            });
+
+            test('TC-FA-08b — unchecking the ONLY available gender shows no-availability message or zero cards', async ({ findAppointmentPage }) => {
+                // Edge case: if all providers are Female (e.g. Hopemark Virtual → Courtney Potempa only),
+                // unchecking Female → Male only → 0 providers OR "no online availability" message.
+                if (await isNoAvailability(findAppointmentPage)) return;
+                const before = await findAppointmentPage.getProviderCardCount();
+                if (before === 0) return;
+
+                await findAppointmentPage.femaleCheckbox.uncheck({ force: true });
+                await findAppointmentPage.page.waitForTimeout(1_500);
+
+                const afterCount = await findAppointmentPage.getProviderCardCount();
+                const noAvail   = await findAppointmentPage.hasNoAvailabilityMessage();
+
+                // Valid outcomes after unchecking Female:
+                //   - count dropped to 0 (only Female providers existed)
+                //   - no-availability message appears
+                //   - count stayed the same (no Female providers → Male-only filter had no effect)
+                // All cases: count can only be ≤ before
+                expect(afterCount).toBeLessThanOrEqual(before);
+
+                // Restore Female so subsequent tests still see providers
+                await findAppointmentPage.femaleCheckbox.check({ force: true });
+                await findAppointmentPage.page.waitForFunction(
+                    () => document.body.innerText.includes('Show More'),
+                    { timeout: 8_000 }
+                ).catch(() => {});
             });
 
             test('TC-FA-09 — unchecking both Male and Female shows no provider cards', async ({ findAppointmentPage }) => {
@@ -290,6 +329,36 @@ export function runFindAppointmentCases(test, expect, opts = {}) {
             });
 
         });
+
+        // ── Service type variants ─────────────────────────────────────────────
+        // For clients with multiple service options (Clarus: Acne/BOTOX/Rash…,
+        // Hopemark: In-Office/Virtual), each service is tested to confirm it shows
+        // either available providers OR the "no online availability" message.
+        // This catches broken service configs (e.g. In-Office showing providers when none exist).
+
+        if (allServiceTypes.length > 1) {
+            test.describe('Service type variants', () => {
+
+                allServiceTypes.forEach(service => {
+                    test(`TC-FA-SVC — "${service}" shows providers or no-availability message`, async ({ findAppointmentPage }) => {
+                        await findAppointmentPage.selectServiceType(service);
+
+                        const hasProviders = (await findAppointmentPage.getProviderCardCount()) > 0;
+                        const noAvail      = await findAppointmentPage.hasNoAvailabilityMessage();
+
+                        // Either providers are shown OR the no-availability error message appears
+                        expect(hasProviders || noAvail).toBe(true);
+
+                        if (hasProviders) {
+                            console.log(`"${service}": ${await findAppointmentPage.getProviderCardCount()} provider card(s) visible`);
+                        } else {
+                            console.log(`"${service}": no-availability message shown (expected for this service)`);
+                        }
+                    });
+                });
+
+            });
+        }
 
     });
 }

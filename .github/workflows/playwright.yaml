@@ -15,9 +15,9 @@ on:
   workflow_dispatch:
     inputs:
       project:
-        description: 'Project to run'
+        description: "Project to run"
         required: true
-        default: 'all'
+        default: "all"
         type: choice
         options:
           - all
@@ -28,9 +28,9 @@ on:
           - hopemark
           - kronson
       grep:
-        description: 'Run only tests matching this pattern (e.g. TC-INS, TC-PI-33)'
+        description: "Run only tests matching this pattern (e.g. TC-INS, TC-PI-33)"
         required: false
-        default: ''
+        default: ""
 
 jobs:
   # ── Core clients — run on every push (dev, stage, main) ──────────────────
@@ -127,37 +127,51 @@ jobs:
           path: test-results/
           retention-days: 14
 
-  # ── Email notification after all jobs ─────────────────────────────────────
+  # ── Detailed email notification ──────────────────────────────────────────────
   notify:
     needs: [test-core, test-full]
     runs-on: ubuntu-latest
     if: always()
     steps:
-      - name: Set result
+      - name: Checkout (needed for the email-report script)
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Download all test result artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: results-*
+          path: all-results/
+        continue-on-error: true # artifacts may be missing if a job was skipped
+
+      - name: Generate detailed HTML email report
+        id: report
+        run: |
+          RUN_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          node scripts/email-report.mjs all-results/ "$RUN_URL" > email-body.html 2>/dev/null || echo "<p>Could not parse results.</p>" > email-body.html
+
+      - name: Set overall result status
         id: result
         run: |
           if [ "${{ needs.test-core.result }}" == "success" ] && \
              [ "${{ needs.test-full.result }}" != "failure" ]; then
-            echo "status=All tests passed" >> $GITHUB_OUTPUT
+            echo "status=✅ All tests passed" >> $GITHUB_OUTPUT
           else
-            echo "status=Some tests FAILED" >> $GITHUB_OUTPUT
+            echo "status=❌ Some tests FAILED" >> $GITHUB_OUTPUT
           fi
 
-      - name: Send Email Notification
+      - name: Send detailed email notification
         uses: dawidd6/action-send-mail@v3
         with:
           server_address: smtp.gmail.com
           server_port: 465
           username: ${{ secrets.MAIL_USERNAME }}
           password: ${{ secrets.MAIL_PASSWORD }}
-          subject: "Playwright — ${{ steps.result.outputs.status }}"
+          subject: "Playwright — ${{ steps.result.outputs.status }} | ${{ github.ref_name }} | ${{ github.event_name }}"
           to: praveen.c@jseven.in
           from: GitHub Actions
-          body: |
-            Playwright E2E pipeline completed.
-
-            Result:  ${{ steps.result.outputs.status }}
-            Branch:  ${{ github.ref_name }}
-            Trigger: ${{ github.event_name }}
-            Actor:   ${{ github.actor }}
-            Run:     https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          html_body: file://email-body.html
