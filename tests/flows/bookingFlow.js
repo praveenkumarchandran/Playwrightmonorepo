@@ -56,6 +56,8 @@ export async function runFlow(page, clientConfig, flow, stopAfter, opts = {}) {
 
     for (const step of flow) {
 
+        try {
+
         // ── Landing ───────────────────────────────────────────────────────────
         if (step === 'landing') {
             await pgs.landing.open(url);
@@ -106,6 +108,23 @@ export async function runFlow(page, clientConfig, flow, stopAfter, opts = {}) {
         // (no auto-fill — tests fill fields themselves)
         if (step === 'patientInfo') {
             await pgs.patient.firstName.waitFor({ state: 'visible', timeout: 30_000 });
+        }
+
+        } catch (e) {
+            // Re-throw NO_SLOTS_AVAILABLE as-is — fixture handles it with testInfo.skip()
+            if (e.message.startsWith('NO_SLOTS_AVAILABLE')) throw e;
+
+            // Wrap all other errors with developer-friendly context
+            const stepMessages = {
+                landing:    `Could not open landing page or click New Patient.\n  URL: ${url}\n  Reason: ${opts.reason ?? reason}`,
+                slotFilter: `Failed while applying slot filters.\n  Filters: ${JSON.stringify(slotFilters)}`,
+                slotPick:   `Could not select a time slot (slotType: "${clientConfig.slotType}").\n  Check that the selected provider/location/reason has available slots in staging.`,
+                intake:     `Intake page failed to load or submit (intakeType: "${clientConfig.intakeType ?? 'tndi'}").`,
+                insurance:  `Insurance form could not be completed (defaultInsurance: "${clientConfig.defaultInsurance}").`,
+                patientInfo:`Patient info page did not render the firstName field within 30s.`,
+            };
+            const hint = stepMessages[step] ?? `Unexpected failure in step "${step}".`;
+            throw new Error(`[bookingFlow: ${step}] ${hint}\n\n  Original error: ${e.message}`);
         }
 
         // Stop here and hand control back to the fixture / test

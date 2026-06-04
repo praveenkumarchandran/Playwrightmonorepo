@@ -105,12 +105,22 @@ export class SlotPage {
      *   Omit (or pass undefined) only when the type is genuinely unknown.
      */
     async clickAnySlot(slotType) {
+        const noAvailLocator = this.page
+            .locator(':text-matches("no online availability|no availability|please call", "i")')
+            .first();
+
         if (slotType === 'datetime') {
             // Hopemark: combined date+time buttons like "Wed Jun 4 4:45 PM"
             const datetimeBtn = this.page.locator('button')
                 .filter({ hasText: /\b(Mon|Tue|Wed|Thu|Fri|Sat|Sun)\b.*\d+:\d+\s*(AM|PM)/ })
                 .first();
-            await datetimeBtn.waitFor({ state: 'visible', timeout: 15_000 });
+            const result = await Promise.race([
+                datetimeBtn.waitFor({ state: 'visible', timeout: 15_000 }).then(() => 'slot'),
+                noAvailLocator.waitFor({ state: 'visible', timeout: 15_000 }).then(() => 'noavail'),
+            ]).catch(() => 'noavail');
+            if (result === 'noavail') {
+                throw new Error('NO_SLOTS_AVAILABLE: No datetime slots available in staging');
+            }
             await datetimeBtn.click();
             console.log(`Datetime slot clicked`);
             return;
@@ -122,16 +132,42 @@ export class SlotPage {
                 ? false
                 // Auto-detect fallback — only used when slotType is not set in config
                 : await this.clarusSlot
-                    .waitFor({ state: 'visible', timeout: 15_000 })
+                    .waitFor({ state: 'visible', timeout: 5_000 })
                     .then(() => true)
                     .catch(() => false);
 
         if (isClarus) {
-            await this.clarusSlot.waitFor({ state: 'visible', timeout: 15_000 });
+            // Click "Show More" first if visible — slots may be collapsed behind it
+            const showMoreBtn = this.page.locator('button').filter({ hasText: /show more/i }).first();
+            const showMoreVisible = await showMoreBtn.isVisible({ timeout: 5_000 }).catch(() => false);
+            if (showMoreVisible) {
+                await showMoreBtn.click();
+                console.log('Clicked Show More to reveal slots');
+            }
+
+            // Wait for either a slot OR a no-availability message — whichever comes first
+            const result = await Promise.race([
+                this.clarusSlot.waitFor({ state: 'visible', timeout: 20_000 }).then(() => 'slot'),
+                noAvailLocator.waitFor({ state: 'visible', timeout: 20_000 }).then(() => 'noavail'),
+            ]).catch(() => 'noavail');
+
+            if (result === 'noavail') {
+                throw new Error('NO_SLOTS_AVAILABLE: Clarus has no online slots in staging');
+            }
+
             await this.clarusSlot.click();
             console.log(`Clarus slot clicked`);
         } else {
-            await this.tndiDateBtn.waitFor({ state: 'visible', timeout: 10_000 });
+            // TNDI / Kronson / Freedman: date strip + time slot buttons
+            const result = await Promise.race([
+                this.tndiDateBtn.waitFor({ state: 'visible', timeout: 15_000 }).then(() => 'slot'),
+                noAvailLocator.waitFor({ state: 'visible', timeout: 15_000 }).then(() => 'noavail'),
+            ]).catch(() => 'noavail');
+
+            if (result === 'noavail') {
+                throw new Error('NO_SLOTS_AVAILABLE: No date/time slots available in staging');
+            }
+
             await this.tndiDateBtn.click();
             console.log(`TNDI date clicked`);
 

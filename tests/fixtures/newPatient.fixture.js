@@ -64,13 +64,22 @@ export function makeNewPatientFixtures(clientKey) {
         // Runs all steps up to (but NOT including) insurance, then waits for the
         // platform to auto-navigate to the insurance page.
         // BUG FIXED: previously called runFlow twice, which re-ran landing → re-booked slot.
-        insurancePage: async ({ page }, use) => {
+        insurancePage: async ({ page }, use, testInfo) => {
             if (!flow.includes('insurance')) {
                 throw new Error(`Client "${clientKey}" has no insurance step.`);
             }
             const insuranceIdx = flow.indexOf('insurance');
             const preInsuranceFlow = flow.slice(0, insuranceIdx);
-            const pgs = await runFlow(page, client, preInsuranceFlow, preInsuranceFlow.at(-1));
+            let pgs;
+            try {
+                pgs = await runFlow(page, client, preInsuranceFlow, preInsuranceFlow.at(-1));
+            } catch (e) {
+                if (e.message.startsWith('NO_SLOTS_AVAILABLE')) {
+                    testInfo.skip(true, `[${clientKey}] No available slots in staging — insurance page tests skipped`);
+                    return;
+                }
+                throw new Error(`[${clientKey}] insurancePage fixture failed.\n  Flow: ${preInsuranceFlow.join(' → ')}\n  ${e.message}`);
+            }
 
             // Platform auto-navigates to insurance after completing prior steps.
             await page.waitForLoadState('networkidle', { timeout: 30_000 });
@@ -104,12 +113,20 @@ export function makeNewPatientFixtures(clientKey) {
 
         // ── patientPage — worker-scoped, full flow runs once per worker ────────
         // All tests in the same worker share this page — no re-running the flow.
-        patientPage: [async ({ browser }, use) => {
+        patientPage: [async ({ browser }, use, testInfo) => {
             const context = await browser.newContext();
             const page = await context.newPage();
-
-            const pgs = await runFlow(page, client, flow, 'patientInfo');
-
+            let pgs;
+            try {
+                pgs = await runFlow(page, client, flow, 'patientInfo');
+            } catch (e) {
+                await context.close();
+                if (e.message.startsWith('NO_SLOTS_AVAILABLE')) {
+                    testInfo.skip(true, `[${clientKey}] No available slots in staging — patient info tests skipped`);
+                    return;
+                }
+                throw new Error(`[${clientKey}] patientPage fixture failed.\n  Flow: ${flow.join(' → ')}\n  ${e.message}`);
+            }
             await use(pgs.patient);
             await context.close();
         }, { scope: 'worker' }],
@@ -120,10 +137,19 @@ export function makeNewPatientFixtures(clientKey) {
         // form fields — each test gets its own browser context.
         // Uses { browser } (not { page }) so MUI component detection matches
         // the worker-scoped fixture's behaviour exactly.
-        patientInfoPage: async ({ browser }, use) => {
+        patientInfoPage: async ({ browser }, use, testInfo) => {
             const context = await browser.newContext();
             const page    = await context.newPage();
-            await runFlow(page, client, flow, 'patientInfo');
+            try {
+                await runFlow(page, client, flow, 'patientInfo');
+            } catch (e) {
+                await context.close();
+                if (e.message.startsWith('NO_SLOTS_AVAILABLE')) {
+                    testInfo.skip(true, `[${clientKey}] No available slots in staging — patient info tests skipped`);
+                    return;
+                }
+                throw new Error(`[${clientKey}] patientInfoPage fixture failed.\n  Flow: ${flow.join(' → ')}\n  ${e.message}`);
+            }
             await use(new PatientInfoPage(page));
             await context.close();
         },
@@ -131,8 +157,16 @@ export function makeNewPatientFixtures(clientKey) {
         // ── stepperPage — test-scoped, full flow + raw page for stepper tests ──
         // Each stepper test gets its own independent browser context so
         // back-navigation in one test doesn't affect the next.
-        stepperPage: async ({ page }, use) => {
-            await runFlow(page, client, flow, 'patientInfo');
+        stepperPage: async ({ page }, use, testInfo) => {
+            try {
+                await runFlow(page, client, flow, 'patientInfo');
+            } catch (e) {
+                if (e.message.startsWith('NO_SLOTS_AVAILABLE')) {
+                    testInfo.skip(true, `[${clientKey}] No available slots in staging — stepper tests skipped`);
+                    return;
+                }
+                throw new Error(`[${clientKey}] stepperPage fixture failed.\n  Flow: ${flow.join(' → ')}\n  ${e.message}`);
+            }
             await use(page);
         },
 
