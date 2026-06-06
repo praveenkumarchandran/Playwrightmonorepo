@@ -23,7 +23,10 @@ import { runLandingCases }         from '../../shared/landing.cases.js';
 import { runInsuranceCases }       from '../../shared/insurance.cases.js';
 import { runPatientInfoCases }     from '../../shared/patientInfo.cases.js';
 import { runStepperCases }         from '../../shared/stepper.cases.js';
-import { runFindAppointmentCases }      from '../../shared/findAppointment.cases.js';
+import { runFindAppointmentCases } from '../../shared/findAppointment.cases.js';
+import { runBrowserBackCases }     from '../../shared/browserBack.cases.js';
+import { runPageRefreshCases }     from '../../shared/pageRefresh.cases.js';
+import { runDirectUrlCases }       from '../../shared/directUrl.cases.js';
 import { runInsurancePageSummaryCases, runPatientPageSummaryCases } from '../../shared/appointmentSummary.cases.js';
 import { runExistingPatientCases } from '../../shared/existingPatient.cases.js';
 import { CLIENTS }                 from '../../../config/clients.js';
@@ -114,5 +117,17 @@ runStepperCases(test, expect, {
 const { existingPatient } = CLIENTS.CLARUS_DERM;
 runExistingPatientCases(epTest, epExpect, {
     ...existingPatient,
-    checkPreFill: true,  // verify insurance + patient info pre-filled after existing patient login
+    checkPreFill: true,
+});
+
+// ── Browser back button ───────────────────────────────────────────────────────
+runBrowserBackCases(test, expect, { hasInsurance: true });
+
+// ── Page refresh mid-flow ─────────────────────────────────────────────────────
+runPageRefreshCases(test, expect, { hasInsurance: true });
+
+// ── Direct URL access ─────────────────────────────────────────────────────────
+runDirectUrlCases(test, expect, {
+    landingUrl:   CLIENTS.CLARUS_DERM.url,
+    hasInsurance: true,
 });

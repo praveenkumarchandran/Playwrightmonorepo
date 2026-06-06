@@ -115,16 +115,26 @@ export class FindAppointmentPage {
         return this.showMoreLinks.count();
     }
 
-    // Returns true when the page shows a "no online availability" message
-    // instead of provider cards. This can happen when:
-    //   - The selected location has no providers with online scheduling
-    //   - All providers are unavailable for the current filter combination
+    // Returns true ONLY when the PAGE-LEVEL "no online availability" message is shown —
+    // meaning ALL slots on the page are unavailable.
+    //
+    // Key distinction:
+    //   "This PROVIDER has no online availability..." → gray provider card (others may have slots)
+    //   "This LOCATION has no online availability..." → whole page has no slots
+    //
+    // CVD example: Ultrasound card shows provider-level message while Dr. Sonde has real slots.
+    // We must NOT return true in that case.
     async hasNoAvailabilityMessage() {
-        return this.page.evaluate(() =>
-            /no online availability|no availability|please call our office/i.test(
-                document.body.innerText
-            )
-        );
+        return this.page.evaluate(() => {
+            const text = document.body.innerText;
+            // Page-level check — location or join-waitlist means truly no slots
+            if (/this location has no online availability/i.test(text)) return true;
+            if (/join waitlist/i.test(text)) return true;
+            // Provider-specific message exists → other providers may still have slots → NOT page-level no-avail
+            if (/this provider has no online availability/i.test(text)) return false;
+            // Generic fallback for clients that show no-availability without provider/location prefix
+            return /no online availability|no availability/i.test(text);
+        });
     }
 
     // Returns the provider name from the nth provider card (0-indexed).

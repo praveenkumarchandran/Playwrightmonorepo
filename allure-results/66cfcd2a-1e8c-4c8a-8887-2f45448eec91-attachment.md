@@ -1,0 +1,194 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: tests\e2e\clients\CVD\newPatient.spec.js >> Invalid input format validation >> TC-PI-VAL-01 — future date as DOB keeps form on page (not submitted)
+- Location: tests\e2e\shared\patientInfo.cases.js:82:9
+
+# Error details
+
+```
+Error: [CVD] patientInfoPage fixture failed.
+  Flow: landing → slotFilter → slotPick → insurance → patientInfo
+  [bookingFlow: landing] Could not open landing page or click New Patient.
+  URL: TODO: paste CVD URL here
+  Reason: TODO: reason type
+
+  Original error: CLIENT_NOT_CONFIGURED: URL is a TODO placeholder — configure this client in clients.js before running tests
+```
+
+# Test source
+
+```ts
+  51  |         // Runs all steps before intake; platform auto-navigates to intake.
+  52  |         intakePage: async ({ page }, use) => {
+  53  |             if (!flow.includes('intake')) {
+  54  |                 throw new Error(`Client "${clientKey}" has no intake step.`);
+  55  |             }
+  56  |             const intakeIdx = flow.indexOf('intake');
+  57  |             const preIntakeFlow = flow.slice(0, intakeIdx);
+  58  |             const pgs = await runFlow(page, client, preIntakeFlow, preIntakeFlow.at(-1));
+  59  |             await page.waitForLoadState('networkidle', { timeout: 30_000 });
+  60  |             await use(pgs.intake);
+  61  |         },
+  62  | 
+  63  |         // ── insurancePage — stops AT the insurance page, before filling it ──────
+  64  |         // Runs all steps up to (but NOT including) insurance, then waits for the
+  65  |         // platform to auto-navigate to the insurance page.
+  66  |         // BUG FIXED: previously called runFlow twice, which re-ran landing → re-booked slot.
+  67  |         insurancePage: async ({ page }, use, testInfo) => {
+  68  |             if (!flow.includes('insurance')) {
+  69  |                 throw new Error(`Client "${clientKey}" has no insurance step.`);
+  70  |             }
+  71  |             const insuranceIdx = flow.indexOf('insurance');
+  72  |             const preInsuranceFlow = flow.slice(0, insuranceIdx);
+  73  |             let pgs;
+  74  |             try {
+  75  |                 pgs = await runFlow(page, client, preInsuranceFlow, preInsuranceFlow.at(-1));
+  76  |             } catch (e) {
+  77  |                 if (e.message.startsWith('NO_SLOTS_AVAILABLE') || e.message.startsWith('CLIENT_NOT_CONFIGURED')) {
+  78  |                     testInfo.skip(true, `[${clientKey}] No available slots in staging — insurance page tests skipped`);
+  79  |                     return;
+  80  |                 }
+  81  |                 throw new Error(`[${clientKey}] insurancePage fixture failed.\n  Flow: ${preInsuranceFlow.join(' → ')}\n  ${e.message}`);
+  82  |             }
+  83  | 
+  84  |             // Platform auto-navigates to insurance after completing prior steps.
+  85  |             await page.waitForLoadState('networkidle', { timeout: 30_000 });
+  86  |             await use(pgs.insurance);
+  87  |         },
+  88  | 
+  89  |         // ── findAppointmentPage — stops AT the /findappointment page, before picking a slot ─
+  90  |         // Runs all steps before slotPick (e.g. landing + intake for SINY).
+  91  |         // The platform auto-navigates to /findappointment after the prior steps complete.
+  92  |         findAppointmentPage: async ({ page }, use) => {
+  93  |             if (!flow.includes('slotPick')) {
+  94  |                 throw new Error(`Client "${clientKey}" has no slotPick step.`);
+  95  |             }
+  96  |             const preSlotFlow = flow.slice(0, flow.indexOf('slotPick'));
+  97  |             const pgs = await runFlow(page, client, preSlotFlow, preSlotFlow.at(-1));
+  98  |             await page.waitForLoadState('networkidle', { timeout: 30_000 });
+  99  |             const findPage = new FindAppointmentPage(page);
+  100 |             await findPage.waitForLoad();
+  101 |             await use(findPage);
+  102 |         },
+  103 | 
+  104 |         // ── slotPage — stops at slotPick step ─────────────────────────────────
+  105 |         slotPage: async ({ page }, use) => {
+  106 |             if (!flow.includes('slotPick')) {
+  107 |                 throw new Error(`Client "${clientKey}" has no slotPick step.`);
+  108 |             }
+  109 |             const preSlotFlow = flow.slice(0, flow.indexOf('slotPick') + 1);
+  110 |             const pgs = await runFlow(page, client, preSlotFlow, 'slotPick');
+  111 |             await use(pgs.slot);
+  112 |         },
+  113 | 
+  114 |         // ── patientPage — worker-scoped, full flow runs once per worker ────────
+  115 |         // All tests in the same worker share this page — no re-running the flow.
+  116 |         patientPage: [async ({ browser }, use, testInfo) => {
+  117 |             const context = await browser.newContext();
+  118 |             const page = await context.newPage();
+  119 |             let pgs;
+  120 |             try {
+  121 |                 pgs = await runFlow(page, client, flow, 'patientInfo');
+  122 |             } catch (e) {
+  123 |                 await context.close();
+  124 |                 if (e.message.startsWith('NO_SLOTS_AVAILABLE') || e.message.startsWith('CLIENT_NOT_CONFIGURED')) {
+  125 |                     testInfo.skip(true, `[${clientKey}] No available slots in staging — patient info tests skipped`);
+  126 |                     return;
+  127 |                 }
+  128 |                 throw new Error(`[${clientKey}] patientPage fixture failed.\n  Flow: ${flow.join(' → ')}\n  ${e.message}`);
+  129 |             }
+  130 |             await use(pgs.patient);
+  131 |             await context.close();
+  132 |         }, { scope: 'worker' }],
+  133 | 
+  134 |         // ── patientInfoPage — test-scoped, fresh browser context per test ────
+  135 |         // Use for tests that SUBMIT the form or need a clean empty state.
+  136 |         // Unlike patientPage (worker-scoped), previous tests cannot pollute
+  137 |         // form fields — each test gets its own browser context.
+  138 |         // Uses { browser } (not { page }) so MUI component detection matches
+  139 |         // the worker-scoped fixture's behaviour exactly.
+  140 |         patientInfoPage: async ({ browser }, use, testInfo) => {
+  141 |             const context = await browser.newContext();
+  142 |             const page    = await context.newPage();
+  143 |             try {
+  144 |                 await runFlow(page, client, flow, 'patientInfo');
+  145 |             } catch (e) {
+  146 |                 await context.close();
+  147 |                 if (e.message.startsWith('NO_SLOTS_AVAILABLE') || e.message.startsWith('CLIENT_NOT_CONFIGURED')) {
+  148 |                     testInfo.skip(true, `[${clientKey}] No available slots in staging — patient info tests skipped`);
+  149 |                     return;
+  150 |                 }
+> 151 |                 throw new Error(`[${clientKey}] patientInfoPage fixture failed.\n  Flow: ${flow.join(' → ')}\n  ${e.message}`);
+      |                       ^ Error: [CVD] patientInfoPage fixture failed.
+  152 |             }
+  153 |             await use(new PatientInfoPage(page));
+  154 |             await context.close();
+  155 |         },
+  156 | 
+  157 |         // ── stepperPage — test-scoped, full flow + raw page for stepper tests ──
+  158 |         // Each stepper test gets its own independent browser context so
+  159 |         // back-navigation in one test doesn't affect the next.
+  160 |         stepperPage: async ({ page }, use, testInfo) => {
+  161 |             try {
+  162 |                 await runFlow(page, client, flow, 'patientInfo');
+  163 |             } catch (e) {
+  164 |                 if (e.message.startsWith('NO_SLOTS_AVAILABLE') || e.message.startsWith('CLIENT_NOT_CONFIGURED')) {
+  165 |                     testInfo.skip(true, `[${clientKey}] No available slots in staging — stepper tests skipped`);
+  166 |                     return;
+  167 |                 }
+  168 |                 throw new Error(`[${clientKey}] stepperPage fixture failed.\n  Flow: ${flow.join(' → ')}\n  ${e.message}`);
+  169 |             }
+  170 |             await use(page);
+  171 |         },
+  172 | 
+  173 |     });
+  174 | 
+  175 |     return { test, expect };
+  176 | }
+  177 | 
+  178 | /**
+  179 |  * Fixture factory for existing-patient flows.
+  180 |  *
+  181 |  * Provides:
+  182 |  *   existingPatientPage — test-scoped — landed on the identity search form,
+  183 |  *                         fields not yet filled. Ready for input/validation tests.
+  184 |  *
+  185 |  * @param {keyof typeof CLIENTS} clientKey
+  186 |  */
+  187 | export function makeExistingPatientFixtures(clientKey) {
+  188 |     const client = CLIENTS[clientKey];
+  189 | 
+  190 |     if (!client) {
+  191 |         throw new Error(`Unknown client key: "${clientKey}". Check tests/config/clients.js`);
+  192 |     }
+  193 |     if (!client.existingPatientFlow) {
+  194 |         throw new Error(`Client "${clientKey}" has no existingPatientFlow configured.`);
+  195 |     }
+  196 | 
+  197 |     const test = base.extend({
+  198 | 
+  199 |         // Navigate to landing → select reason (same as new patient) → click Existing Patient
+  200 |         existingPatientPage: async ({ page }, use) => {
+  201 |             const landing = new LandingPage(page);
+  202 |             await landing.open(client.url);  // open() includes the content-ready wait
+  203 |             await landing.startExistingPatient(client.reason, {
+  204 |                 serviceType:        client.serviceType        ?? null,
+  205 |                 landingPopupAction: client.landingPopupAction ?? null,
+  206 |             });
+  207 |             const existing = new ExistingPatientPage(page);
+  208 |             await existing.waitForLoad();
+  209 |             await use(existing);
+  210 |         },
+  211 | 
+  212 |     });
+  213 | 
+  214 |     return { test, expect };
+  215 | }
+  216 | 
+```

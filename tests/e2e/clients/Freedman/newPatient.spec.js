@@ -36,6 +36,9 @@ import { runInsuranceCases }            from '../../shared/insurance.cases.js';
 import { runInsurancePageSummaryCases, runPatientPageSummaryCases } from '../../shared/appointmentSummary.cases.js';
 import { runPatientInfoCases }          from '../../shared/patientInfo.cases.js';
 import { runStepperCases }              from '../../shared/stepper.cases.js';
+import { runBrowserBackCases }          from '../../shared/browserBack.cases.js';
+import { runPageRefreshCases }          from '../../shared/pageRefresh.cases.js';
+import { runDirectUrlCases }            from '../../shared/directUrl.cases.js';
 import { runExistingPatientCases }      from '../../shared/existingPatient.cases.js';
 import { CLIENTS }                      from '../../../config/clients.js';
 
@@ -125,6 +128,17 @@ runStepperCases(test, expect, {
 });
 
 // ── Existing Patient ──────────────────────────────────────────────────────────
-// Credentials: AmirthamJ / S / 05/05/2026 — verify these are valid in staging
 const { existingPatient } = CLIENTS.FREEDMAN;
 runExistingPatientCases(epTest, epExpect, existingPatient);
+
+// ── Browser back button ───────────────────────────────────────────────────────
+runBrowserBackCases(test, expect, { hasInsurance: true });
+
+// ── Page refresh mid-flow ─────────────────────────────────────────────────────
+runPageRefreshCases(test, expect, { hasInsurance: true });
+
+// ── Direct URL access ─────────────────────────────────────────────────────────
+runDirectUrlCases(test, expect, {
+    landingUrl:   CLIENTS.FREEDMAN.url,
+    hasInsurance: true,
+});

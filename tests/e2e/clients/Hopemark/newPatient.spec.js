@@ -32,6 +32,9 @@ import { runInsuranceCases }            from '../../shared/insurance.cases.js';
 import { runInsurancePageSummaryCases, runPatientPageSummaryCases } from '../../shared/appointmentSummary.cases.js';
 import { runPatientInfoCases }          from '../../shared/patientInfo.cases.js';
 import { runStepperCases }              from '../../shared/stepper.cases.js';
+import { runBrowserBackCases }          from '../../shared/browserBack.cases.js';
+import { runPageRefreshCases }          from '../../shared/pageRefresh.cases.js';
+import { runDirectUrlCases }            from '../../shared/directUrl.cases.js';
 import { runExistingPatientCases }      from '../../shared/existingPatient.cases.js';
 import { CLIENTS }                      from '../../../config/clients.js';
 
@@ -116,12 +119,19 @@ runStepperCases(test, expect, {
     intakeCondition: 'ADHD',  // condition chip selected during flow setup
 });
 
-// ── Existing Patient ──────────────────────────────────────────────────────────
-// TODO: The existing patient credentials in clients.js (test/pv155/02/02/2000) are
-// placeholder values that don't match a real Hopemark patient. TC-EP-08 (valid credentials
-// navigate away) and TC-NP tests (New Patient button after failed search) fail because:
-//   1. Credentials don't match a real patient → no navigation
-//   2. Hopemark may not show a "New Patient" button after a failed search
+// ── Existing Patient — DISABLED ───────────────────────────────────────────────
+// Placeholder credentials in clients.js don't match a real Hopemark patient.
 // Update CLIENTS.HOPEMARK.existingPatient with real credentials before enabling.
-// const { existingPatient } = CLIENTS.HOPEMARK;
-// runExistingPatientCases(epTest, epExpect, existingPatient);
+// runExistingPatientCases(epTest, epExpect, CLIENTS.HOPEMARK.existingPatient);
+
+// ── Browser back button ───────────────────────────────────────────────────────
+runBrowserBackCases(test, expect, { hasInsurance: true });
+
+// ── Page refresh mid-flow ─────────────────────────────────────────────────────
+runPageRefreshCases(test, expect, { hasInsurance: true });
+
+// ── Direct URL access ─────────────────────────────────────────────────────────
+runDirectUrlCases(test, expect, {
+    landingUrl:   CLIENTS.HOPEMARK.url,
+    hasInsurance: true,
+});

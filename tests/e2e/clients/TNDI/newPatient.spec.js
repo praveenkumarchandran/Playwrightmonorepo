@@ -30,6 +30,9 @@ import { runIntakeCases }               from '../../shared/intake.cases.js';
 import { runInsuranceCases }            from '../../shared/insurance.cases.js';
 import { runPatientInfoCases }          from '../../shared/patientInfo.cases.js';
 import { runStepperCases }              from '../../shared/stepper.cases.js';
+import { runBrowserBackCases }          from '../../shared/browserBack.cases.js';
+import { runPageRefreshCases }          from '../../shared/pageRefresh.cases.js';
+import { runDirectUrlCases }            from '../../shared/directUrl.cases.js';
 import { runInsurancePageSummaryCases, runPatientPageSummaryCases } from '../../shared/appointmentSummary.cases.js';
 import { CLIENTS }                      from '../../../config/clients.js';
 
@@ -101,6 +104,17 @@ runStepperCases(test, expect, {
 });
 
 // ── Existing Patient — DISABLED ───────────────────────────────────────────────
-// TNDI shows popup: "Existing patients are not able to schedule online at this time.
-// Please call our office to schedule your appointment."
-// Scheduler-side limitation — re-enable runExistingPatientCases when fixed.
+// TNDI shows popup: "Existing patients are not able to schedule online at this time."
+// Re-enable runExistingPatientCases when fixed.
+
+// ── Browser back button ───────────────────────────────────────────────────────
+runBrowserBackCases(test, expect, { hasInsurance: true });
+
+// ── Page refresh mid-flow ─────────────────────────────────────────────────────
+runPageRefreshCases(test, expect, { hasInsurance: true });
+
+// ── Direct URL access ─────────────────────────────────────────────────────────
+runDirectUrlCases(test, expect, {
+    landingUrl:   CLIENTS.TNDI.url,
+    hasInsurance: true,
+});

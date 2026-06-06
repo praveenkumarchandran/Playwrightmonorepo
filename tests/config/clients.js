@@ -15,6 +15,10 @@
  * TODO items are marked — fill in actual values after verifying in the browser.
  */
 
+// Set SETTER_BASE_URL=https://setter.layline.live to run against production.
+// Defaults to staging when not set.
+const BASE = (process.env.SETTER_BASE_URL ?? 'https://stage.setter.layline.live').replace(/\/$/, '');
+
 export const CLIENTS = {
 
     // ── 141 — TNDI ────────────────────────────────────────────────────────────
@@ -22,7 +26,7 @@ export const CLIENTS = {
         id: 141,
         name: 'The Nerve and Disc Institute',
         phone: '586-416-3472',  // confirmed from screenshot
-        url: 'https://stage.setter.layline.live/thenerveanddiscinstitute/1/thenerveanddiscinstitutefarmington/landing',
+        url: `${BASE}/thenerveanddiscinstitute/1/thenerveanddiscinstitutefarmington/landing`,
         newPatientFlow: ['landing', 'slotPick', 'intake', 'insurance', 'patientInfo'],
         existingPatientFlow: ['existingLanding'],
         existingPatient: { firstName: 'Mangaleswari', lastName: 'dev', dob: '07/11/1994' },
@@ -38,7 +42,7 @@ export const CLIENTS = {
         id: 133,
         name: 'Clarus Dermatology',
         phone: '877-408-2431',  // confirmed from screenshot (top-right header)
-        url: 'https://stage.setter.layline.live/clarusdermatology/1/minnetonka/landing',
+        url: `${BASE}/clarusdermatology/1/minnetonka/landing`,
         newPatientFlow: ['landing', 'slotFilter', 'slotPick', 'insurance', 'patientInfo'],
         existingPatientFlow: ['existingLanding'],
         existingPatient: { firstName: 'Madhantest', lastName: 'S', dob: '11/11/2002' },
@@ -62,7 +66,7 @@ export const CLIENTS = {
         id: 162,
         name: 'SINY Dermatology — Medical',
         phone: '718-491-5800',  // confirmed from screenshot
-        url: 'https://stage.setter.layline.live/sinydermatology/1/sinydermatologybayridge/landing',
+        url: `${BASE}/sinydermatology/1/sinydermatologybayridge/landing`,
         newPatientFlow: ['landing', 'intake', 'slotPick', 'insurance', 'patientInfo'],
         existingPatientFlow: ['existingLanding'],
         existingPatient: { firstName: 'Kyletest0889', lastName: 'Laramoretest0889', dob: '01/08/1987' },
@@ -91,7 +95,7 @@ export const CLIENTS = {
         id: 162,
         name: 'SINY Dermatology — Cosmetic',
         phone: '718-491-5800',  // same as medical — same clinic
-        url: 'https://stage.setter.layline.live/sinydermatology/1/sinydermatologybayridge/landing',
+        url: `${BASE}/sinydermatology/1/sinydermatologybayridge/landing`,
         newPatientFlow: ['landing', 'intake', 'slotPick', 'patientInfo'],
         existingPatientFlow: ['existingLanding'],
         existingPatient: { firstName: 'Kyletest0889', lastName: 'Laramoretest0889', dob: '01/08/1987' },
@@ -116,7 +120,7 @@ export const CLIENTS = {
         id: 134,
         name: 'Hopemark Health',
         phone: '630-912-0025',  // confirmed from screenshot
-        url: 'https://stage.setter.layline.live/hopemarkhealth/1/downtown/landing',
+        url: `${BASE}/hopemarkhealth/1/downtown/landing`,
         newPatientFlow:      ['landing', 'slotFilter', 'slotPick', 'intake', 'insurance', 'patientInfo'],
         existingPatientFlow: ['existingLanding'],
         existingPatient: { firstName: 'test', lastName: 'pv155', dob: '02/02/2000' },
@@ -140,7 +144,7 @@ export const CLIENTS = {
         id: 160,
         name: 'Freedman ENT',
         phone: '(734) 479-7310',  // confirmed from screenshot
-        url: 'https://stage.setter.layline.live/test/1/freedmanentdownriver/landing',
+        url: `${BASE}/test/1/freedmanentdownriver/landing`,
         // Flow confirmed: slot → intake (optional) → insurance → patientInfo
         newPatientFlow: ['landing', 'slotPick', 'intake', 'insurance', 'patientInfo'],
         existingPatientFlow: ['existingLanding'],
@@ -160,7 +164,7 @@ export const CLIENTS = {
         id: 149,
         name: 'Kronson Vein Institute',
         phone: '626-254-2287',  // confirmed from screenshot
-        url: 'https://stage.setter.layline.live/kronsonveininstitute/1/arcadia/landing',
+        url: `${BASE}/kronsonveininstitute/1/arcadia/landing`,
         newPatientFlow: ['landing', 'slotPick', 'insurance', 'patientInfo'],
         existingPatientFlow: ['existingLanding'],
         existingPatient: { firstName: 'Madhan', lastName: 'Srinivasan', dob: '05/21/2026' },
@@ -171,19 +175,26 @@ export const CLIENTS = {
         filterNeedsContinue: false,
     },
 
-    // ── 124 — CVD ─────────────────────────────────────────────────────────────
+    // ── 124 — CENTER FOR VEIN DISEASE ────────────────────────────────────────
+    // Flow: Location(1) → Choose Date & Time(2) → Intake Questions(3) → Add Insurance(4) → Add Info(5)
+    // Only "Consult" has available slots (Dr. Sonde). All other reasons show no-availability.
+    // Slot style: Clarus-style recentslot cards + Show More. No Provider filter.
+    // Intake: optional free-text textarea (same as SINY/Freedman — intakeType: 'siny').
     CVD: {
         id: 124,
-        name: 'CVD',
-        url: 'TODO: paste CVD URL here',
-        newPatientFlow: ['landing', 'slotFilter', 'slotPick', 'insurance', 'patientInfo'],
-        existingPatientFlow: null,
-        reason: 'TODO: reason type',
-        slotType: 'tndi',
+        name: 'Center for Vein Disease',
+        phone: '301-220-8346',
+        url: `${BASE}/centerforveindisease/1/mainoffice/landing`,
+        newPatientFlow: ['landing', 'slotFilter', 'slotPick', 'intake', 'insurance', 'patientInfo'],
+        existingPatientFlow: ['existingLanding'],
+        existingPatient: { firstName: 'TODO', lastName: 'TODO', dob: 'TODO' },
+        reason: 'Consult',         // only reason with Dr. Sonde slots in staging
+        slotType: 'clarus',        // recentslot- card style + Show More
+        intakeType: 'siny',        // optional free-text textarea
         slotFilters: {
-            location: 'TODO: location name as shown in dropdown',
-            reason: null,
-            provider: null,
+            location: 'Main Office',
+            reason: 'Consult',
+            provider: null,        // no Provider filter on CVD find appointment page
         },
         defaultInsurance: 'Self-pay',
         filterNeedsContinue: false,

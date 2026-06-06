@@ -26,6 +26,9 @@ import { makeNewPatientFixtures, makeExistingPatientFixtures } from '../../../fi
 import { runLandingCases }         from '../../shared/landing.cases.js';
 import { runFindAppointmentCases } from '../../shared/findAppointment.cases.js';
 import { runExistingPatientCases } from '../../shared/existingPatient.cases.js';
+import { runBrowserBackCases }     from '../../shared/browserBack.cases.js';
+import { runPageRefreshCases }     from '../../shared/pageRefresh.cases.js';
+import { runDirectUrlCases }       from '../../shared/directUrl.cases.js';
 import { CLIENTS }                 from '../../../config/clients.js';
 
 const { test, expect }                   = makeNewPatientFixtures('KRONSON');
@@ -63,3 +66,14 @@ runFindAppointmentCases(test, expect, {
 // ── Existing Patient ──────────────────────────────────────────────────────────
 const { existingPatient } = CLIENTS.KRONSON;
 runExistingPatientCases(epTest, epExpect, existingPatient);
+
+// ── Browser back / Refresh — gracefully skip when no slots ───────────────────
+// insurancePage/patientInfoPage fixtures auto-skip when Arcadia has no slots.
+runBrowserBackCases(test, expect, { hasInsurance: true });
+runPageRefreshCases(test, expect, { hasInsurance: true });
+
+// ── Direct URL access ─────────────────────────────────────────────────────────
+runDirectUrlCases(test, expect, {
+    landingUrl:   CLIENTS.KRONSON.url,
+    hasInsurance: true,
+});

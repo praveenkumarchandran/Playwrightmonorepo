@@ -17,8 +17,11 @@ import { runPatientInfoCases }       from '../../shared/patientInfo.cases.js';
 import { runStepperCases }           from '../../shared/stepper.cases.js';
 import { runSINYLandingCases }       from '../../shared/sinyLanding.cases.js';
 import { runExistingPatientCases }   from '../../shared/existingPatient.cases.js';
-import { runFindAppointmentCases }      from '../../shared/findAppointment.cases.js';
-import { runPatientPageSummaryCases }     from '../../shared/appointmentSummary.cases.js';
+import { runFindAppointmentCases }   from '../../shared/findAppointment.cases.js';
+import { runBrowserBackCases }       from '../../shared/browserBack.cases.js';
+import { runPageRefreshCases }       from '../../shared/pageRefresh.cases.js';
+import { runDirectUrlCases }         from '../../shared/directUrl.cases.js';
+import { runPatientPageSummaryCases } from '../../shared/appointmentSummary.cases.js';
 import { CLIENTS }                   from '../../../config/clients.js';
 
 const { test, expect }                   = makeNewPatientFixtures('SINY_COSMETIC');
@@ -56,3 +59,15 @@ runPatientPageSummaryCases(test, expect, {
 
 const { existingPatient } = CLIENTS.SINY_COSMETIC;
 runExistingPatientCases(epTest, epExpect, existingPatient);
+
+// ── Browser back button ───────────────────────────────────────────────────────
+runBrowserBackCases(test, expect, { hasInsurance: false }); // cosmetic has no insurance step
+
+// ── Page refresh mid-flow ─────────────────────────────────────────────────────
+runPageRefreshCases(test, expect, { hasInsurance: false });
+
+// ── Direct URL access ─────────────────────────────────────────────────────────
+runDirectUrlCases(test, expect, {
+    landingUrl:   CLIENTS.SINY_COSMETIC.url,
+    hasInsurance: false,
+});

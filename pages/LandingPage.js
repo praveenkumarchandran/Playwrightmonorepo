@@ -115,10 +115,20 @@ export class LandingPage {
 
         if (hasAutocomplete) {
             await this.reasonAutocomplete.click();
-            await this.reasonAutocomplete.pressSequentially(reasonType, { delay: 20 });
-            const option = this.page.locator('[role="option"]').filter({ hasText: reasonType }).first();
-            await option.waitFor({ state: 'visible', timeout: 20_000 });
-            await option.click();
+
+            const optionLocator = this.page.locator('[role="option"]').filter({ hasText: reasonType }).first();
+
+            // Check if options appear immediately (MUI Select style — no typing needed)
+            const optionAlreadyVisible = await optionLocator.isVisible({ timeout: 3_000 }).catch(() => false);
+
+            if (!optionAlreadyVisible) {
+                // True autocomplete — type to filter
+                await this.reasonAutocomplete.pressSequentially(reasonType, { delay: 20 });
+            }
+
+            // Wait for option — if not found, throw so caller can handle (e.g. production spec try-catch)
+            await optionLocator.waitFor({ state: 'visible', timeout: 10_000 });
+            await optionLocator.click();
         } else {
             // MUI Select style (Hopemark, SINY)
             await this.reasonSelect.waitFor({ state: 'visible', timeout: 10_000 });

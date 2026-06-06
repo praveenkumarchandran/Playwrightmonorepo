@@ -1,0 +1,4 @@
+Reason selected: Acne
+✅ Selected (dropdown): Minnetonka
+✅ Selected (autocomplete): Acne
+Clarus slot clicked

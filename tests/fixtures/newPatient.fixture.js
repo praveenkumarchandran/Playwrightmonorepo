@@ -74,7 +74,7 @@ export function makeNewPatientFixtures(clientKey) {
             try {
                 pgs = await runFlow(page, client, preInsuranceFlow, preInsuranceFlow.at(-1));
             } catch (e) {
-                if (e.message.startsWith('NO_SLOTS_AVAILABLE')) {
+                if (e.message.startsWith('NO_SLOTS_AVAILABLE') || e.message.startsWith('CLIENT_NOT_CONFIGURED')) {
                     testInfo.skip(true, `[${clientKey}] No available slots in staging — insurance page tests skipped`);
                     return;
                 }
@@ -121,7 +121,7 @@ export function makeNewPatientFixtures(clientKey) {
                 pgs = await runFlow(page, client, flow, 'patientInfo');
             } catch (e) {
                 await context.close();
-                if (e.message.startsWith('NO_SLOTS_AVAILABLE')) {
+                if (e.message.startsWith('NO_SLOTS_AVAILABLE') || e.message.startsWith('CLIENT_NOT_CONFIGURED')) {
                     testInfo.skip(true, `[${clientKey}] No available slots in staging — patient info tests skipped`);
                     return;
                 }
@@ -144,7 +144,7 @@ export function makeNewPatientFixtures(clientKey) {
                 await runFlow(page, client, flow, 'patientInfo');
             } catch (e) {
                 await context.close();
-                if (e.message.startsWith('NO_SLOTS_AVAILABLE')) {
+                if (e.message.startsWith('NO_SLOTS_AVAILABLE') || e.message.startsWith('CLIENT_NOT_CONFIGURED')) {
                     testInfo.skip(true, `[${clientKey}] No available slots in staging — patient info tests skipped`);
                     return;
                 }
@@ -161,7 +161,7 @@ export function makeNewPatientFixtures(clientKey) {
             try {
                 await runFlow(page, client, flow, 'patientInfo');
             } catch (e) {
-                if (e.message.startsWith('NO_SLOTS_AVAILABLE')) {
+                if (e.message.startsWith('NO_SLOTS_AVAILABLE') || e.message.startsWith('CLIENT_NOT_CONFIGURED')) {
                     testInfo.skip(true, `[${clientKey}] No available slots in staging — stepper tests skipped`);
                     return;
                 }

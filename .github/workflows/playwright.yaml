@@ -28,6 +28,7 @@ on:
           - hopemark
           - kronson
           - freedman
+          - cvd
       grep:
         description: "Run only tests matching this pattern (e.g. TC-INS, TC-PI-33)"
         required: false
@@ -91,13 +92,13 @@ jobs:
        github.event_name == 'pull_request' || github.event_name == 'schedule') ||
       (github.event_name == 'workflow_dispatch' &&
        (inputs.project == 'all' ||
-        inputs.project == 'hopemark' || inputs.project == 'kronson' || inputs.project == 'freedman'))
+        inputs.project == 'hopemark' || inputs.project == 'kronson' || inputs.project == 'freedman' || inputs.project == 'cvd'))
     runs-on: ubuntu-latest
     timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
-        project: [hopemark, kronson, freedman]
+        project: [hopemark, kronson, freedman, cvd]
     steps:
       - uses: actions/checkout@v4
 

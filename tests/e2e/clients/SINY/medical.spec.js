@@ -16,7 +16,10 @@ import { runPatientInfoCases }       from '../../shared/patientInfo.cases.js';
 import { runStepperCases }           from '../../shared/stepper.cases.js';
 import { runSINYLandingCases }       from '../../shared/sinyLanding.cases.js';
 import { runExistingPatientCases }   from '../../shared/existingPatient.cases.js';
-import { runFindAppointmentCases }      from '../../shared/findAppointment.cases.js';
+import { runFindAppointmentCases }   from '../../shared/findAppointment.cases.js';
+import { runBrowserBackCases }       from '../../shared/browserBack.cases.js';
+import { runPageRefreshCases }       from '../../shared/pageRefresh.cases.js';
+import { runDirectUrlCases }         from '../../shared/directUrl.cases.js';
 import { runInsurancePageSummaryCases, runPatientPageSummaryCases } from '../../shared/appointmentSummary.cases.js';
 import { CLIENTS }                   from '../../../config/clients.js';
 
@@ -81,5 +84,17 @@ runPatientPageSummaryCases(test, expect, {
 const { existingPatient } = CLIENTS.SINY_MEDICAL;
 runExistingPatientCases(epTest, epExpect, {
     ...existingPatient,
-    checkPreFill: true,  // verify insurance + patient info pre-filled after existing patient login
+    checkPreFill: true,
+});
+
+// ── Browser back button ───────────────────────────────────────────────────────
+runBrowserBackCases(test, expect, { hasInsurance: true });
+
+// ── Page refresh mid-flow ─────────────────────────────────────────────────────
+runPageRefreshCases(test, expect, { hasInsurance: true });
+
+// ── Direct URL access ─────────────────────────────────────────────────────────
+runDirectUrlCases(test, expect, {
+    landingUrl:   CLIENTS.SINY_MEDICAL.url,
+    hasInsurance: true,
 });

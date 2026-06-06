@@ -1,0 +1,168 @@
+{
+  "config": {
+    "configFile": "E:\\React\\Playwright\\playwright.config.prod.js",
+    "rootDir": "E:/React/Playwright",
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "E:/React/Playwright/test-results",
+        "repeatEach": 1,
+        "retries": 1,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "prod-slot-check",
+        "name": "prod-slot-check",
+        "testDir": "E:/React/Playwright",
+        "testIgnore": [],
+        "testMatch": [
+          "**/production/**/*.spec.js"
+        ],
+        "timeout": 600000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "prod-results/results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.60.0",
+    "workers": 4,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "tests\\e2e\\production\\duplicateSlots.spec.js",
+      "file": "tests/e2e/production/duplicateSlots.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "[Center for Vein Disease] No duplicate slots on production",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 600000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "prod-slot-check",
+              "projectName": "prod-slot-check",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 11234,
+                  "errors": [],
+                  "stdout": [
+                    {
+                      "text": "Reason selected: Consult\n"
+                    },
+                    {
+                      "text": "[Center for Vein Disease] Session established — sessionId: 1780766151...\n"
+                    },
+                    {
+                      "text": "[Center for Vein Disease] Locations (1): Main Office\n"
+                    },
+                    {
+                      "text": "✅ Selected (autocomplete): Main Office\n"
+                    },
+                    {
+                      "text": "✅ Selected (autocomplete): Consult\n"
+                    },
+                    {
+                      "text": "  [Main Office] Consult: calling API (appointmenttypeid=21)...\n"
+                    },
+                    {
+                      "text": "  [Main Office] Consult: 33 slots from API\n"
+                    },
+                    {
+                      "text": "    Provider: Dr. Sonde\n"
+                    },
+                    {
+                      "text": "      06/08/2026: 09:30, 10:30, 13:30 (3)\n"
+                    },
+                    {
+                      "text": "      06/09/2026: 09:30, 10:30, 13:30, 15:30 (4)\n"
+                    },
+                    {
+                      "text": "      06/10/2026: 09:30, 12:30, 13:30, 14:30 (4)\n"
+                    },
+                    {
+                      "text": "      06/11/2026: 09:30, 10:30, 13:30, 15:30 (4)\n"
+                    },
+                    {
+                      "text": "      06/15/2026: 09:30, 10:30, 13:30, 15:30 (4)\n"
+                    },
+                    {
+                      "text": "      06/16/2026: 09:30, 10:30, 13:30, 15:30 (4)\n"
+                    },
+                    {
+                      "text": "      06/17/2026: 09:30, 12:30, 13:30, 14:30 (4)\n"
+                    },
+                    {
+                      "text": "      06/18/2026: 09:30, 10:30, 13:30 (3)\n"
+                    },
+                    {
+                      "text": "      06/23/2026: 09:30, 10:30, 15:30 (3)\n"
+                    },
+                    {
+                      "text": "\n[Center for Vein Disease] ✅ No duplicate slots\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-06-06T17:15:47.412Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "575f22f6567647ca6d07-2b4b54d7733ef1771f84",
+          "file": "tests/e2e/production/duplicateSlots.spec.js",
+          "line": 102,
+          "column": 5
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-06-06T17:15:45.471Z",
+    "duration": 13786.802,
+    "expected": 1,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

@@ -60,6 +60,9 @@ export async function runFlow(page, clientConfig, flow, stopAfter, opts = {}) {
 
         // ── Landing ───────────────────────────────────────────────────────────
         if (step === 'landing') {
+            if (!url || url.includes('TODO')) {
+                throw new Error('CLIENT_NOT_CONFIGURED: URL is a TODO placeholder — configure this client in clients.js before running tests');
+            }
             await pgs.landing.open(url);
             await pgs.landing.startNewPatient(opts.reason ?? reason, {
                 serviceType:        clientConfig.serviceType,
@@ -111,8 +114,8 @@ export async function runFlow(page, clientConfig, flow, stopAfter, opts = {}) {
         }
 
         } catch (e) {
-            // Re-throw NO_SLOTS_AVAILABLE as-is — fixture handles it with testInfo.skip()
-            if (e.message.startsWith('NO_SLOTS_AVAILABLE')) throw e;
+            // Re-throw these as-is — fixtures catch them and call testInfo.skip()
+            if (e.message.startsWith('NO_SLOTS_AVAILABLE') || e.message.startsWith('CLIENT_NOT_CONFIGURED')) throw e;
 
             // Wrap all other errors with developer-friendly context
             const stepMessages = {

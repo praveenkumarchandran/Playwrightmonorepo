@@ -1,0 +1,5 @@
+Reason selected: Consult
+✅ Selected (dropdown): Main Office
+✅ Selected (autocomplete): Consult
+Clarus slot clicked
+Take Picture / Manually Enter buttons absent — admin config off
