@@ -1,0 +1,7 @@
+node_modules/
+test-results/
+prod-results/
+playwright-report/
+slot-check-email.html
+*.zip
+*.tar.gz
