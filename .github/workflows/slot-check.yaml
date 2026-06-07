@@ -31,12 +31,22 @@ jobs:
           SETTER_BASE_URL: https://setter.layline.live
         continue-on-error: true
 
+      - name: Generate detailed email report
+        if: always()
+        run: |
+          node scripts/slot-check-report.mjs \
+            prod-results \
+            "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            slot-check-email.html
+
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: slot-check-results
-          path: prod-results/
+          path: |
+            prod-results/
+            slot-check-email.html
           retention-days: 7
 
       - name: Send duplicate slot alert email
@@ -50,25 +60,4 @@ jobs:
           subject: "⚠️ DUPLICATE SLOTS DETECTED on Production — ${{ github.run_id }}"
           to: praveen.c@jseven.in
           from: GitHub Actions
-          html_body: |
-            <div style="font-family:sans-serif;max-width:620px">
-              <div style="background:#c0392b;color:white;padding:16px;border-radius:6px">
-                <h2 style="margin:0">⚠️ Duplicate Appointment Slots Detected</h2>
-                <p style="margin:8px 0 0">Production — setter.layline.live</p>
-              </div>
-              <div style="padding:16px;background:#fdf2f2;border:1px solid #e74c3c;border-radius:6px;margin-top:12px">
-                <p><strong>What happened:</strong> The automated slot checker found appointment time slots appearing more than once for the same provider + location + service.</p>
-                <p><strong>Likely cause:</strong> The Talend slot generation job ran twice or produced overlapping records.</p>
-                <p><strong>Action required:</strong> Check Talend job logs and remove duplicate slot records immediately to prevent double-bookings.</p>
-                <p><strong>Clients checked:</strong> SINY Medical, SINY Cosmetic, Clarus, TNDI, Hopemark (6 locations), Kronson, Freedman, CVD</p>
-              </div>
-              <div style="padding:16px;margin-top:12px">
-                <a href="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-                   style="background:#2980b9;color:white;padding:10px 20px;text-decoration:none;border-radius:4px;font-weight:bold">
-                  View Full Duplicate Report
-                </a>
-              </div>
-              <p style="color:#888;font-size:12px;margin-top:20px;border-top:1px solid #eee;padding-top:12px">
-                Runs every 30 minutes automatically | ${{ github.event_name }} | Run #${{ github.run_id }}
-              </p>
-            </div>
+          html_body: file://slot-check-email.html

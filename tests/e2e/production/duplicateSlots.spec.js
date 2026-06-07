@@ -154,6 +154,7 @@ for (const client of PROD_CLIENTS) {
             await page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => {});
             await page.waitForTimeout(1_000); // ensure all initial API calls complete
             onFindAppt = page.url().includes('findappointment');
+            if (onFindAppt) credentials._findApptUrl = page.url();
         } catch (e) {
             console.log(`[${cfg.name}] Navigation failed: ${e.message.split('\n')[0]}`);
         } finally {
@@ -216,33 +217,32 @@ for (const client of PROD_CLIENTS) {
                     if (!req.url().includes('/getProviders') && !req.url().includes('/getAllProviders')) return;
                     try {
                         const url = new URL(req.url());
-                        appointmenttypeid = url.searchParams.get('appointmenttypeid');
-                        capturedDeptId    = url.searchParams.get('departmentid') ?? capturedDeptId;
+                        // Always overwrite — page auto-call fires first (default service),
+                        // then the explicit service-selection call fires second (target service).
+                        const id = url.searchParams.get('appointmenttypeid');
+                        if (id) appointmenttypeid = id;
+                        capturedDeptId = url.searchParams.get('departmentid') ?? capturedDeptId;
                     } catch {}
                 };
                 page.on('request', apptTypeListener);
 
                 try {
+                    // Reload before each service so selecting it always fires a fresh
+                    // getProviders call — prevents "skipped" when the same service is
+                    // already active and no new API call would otherwise be triggered.
+                    if (credentials._findApptUrl) {
+                        await page.goto(credentials._findApptUrl, { waitUntil: 'networkidle', timeout: 20_000 }).catch(() => {});
+                        await page.waitForTimeout(500);
+                    }
                     if (loc) {
                         await slotPg.selectLocation(loc).catch(() => {});
                         await page.waitForTimeout(400);
                     }
                     await slotPg.selectAppointmentReason(svc.filterReason).catch(() => {});
                     await page.waitForLoadState('networkidle', { timeout: 8_000 }).catch(() => {});
-                    await page.waitForTimeout(300);
+                    await page.waitForTimeout(400);
                 } finally {
                     page.off('request', apptTypeListener);
-                }
-
-                // If re-selecting the service didn't trigger a new API call,
-                // fall back to the initial appointmenttypeid.
-                // This covers two cases:
-                //   1. First service already active on page load (no re-query needed)
-                //   2. Same appointmenttypeid as first service (e.g. Rash shares type with Acne)
-                //      → API call for this service would return identical slots anyway
-                if (!appointmenttypeid && credentials.initialApptTypeId) {
-                    appointmenttypeid = credentials.initialApptTypeId;
-                    console.log(`  [${loc ?? 'pre-set'}] ${label}: shares appointmenttypeid=${appointmenttypeid} with initial service`);
                 }
 
                 if (!appointmenttypeid) {
@@ -283,6 +283,8 @@ for (const client of PROD_CLIENTS) {
 
                     if (data) {
                         collectSlots(data, apiSlots);
+                        // Stamp the known appointmenttypeid so findDuplicatesInSlots has a complete key
+                        for (const s of apiSlots) s.appointmenttypeid ??= appointmenttypeid;
                         console.log(`  [${loc ?? 'pre-set'}] ${label}: ${apiSlots.length} slots from API`);
                     } else {
                         console.log(`  [${loc ?? 'pre-set'}] ${label}: ⚠️  API returned no data`);

@@ -13,7 +13,7 @@
 import { defineConfig } from '@playwright/test';
 
 export default defineConfig({
-    testMatch: '**/production/**/*.spec.js',
+    testMatch: '**/production/duplicateSlots.spec.js',
 
     timeout:  600_000,   // 10 min — SINY Cosmetic has 5 services × multiple locations
     workers:  4,        // 4 clients checked in parallel
