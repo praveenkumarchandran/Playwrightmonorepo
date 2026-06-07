@@ -9,7 +9,7 @@ on:
 jobs:
   check-duplicates:
     runs-on: ubuntu-latest
-    timeout-minutes: 30   # Hopemark checks 6 locations × 2 services — needs more time
+    timeout-minutes: 60   # Hopemark checks 6 locations × 2 services — needs more time
 
     steps:
       - uses: actions/checkout@v4
