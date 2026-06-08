@@ -112,6 +112,16 @@ export default defineConfig({
             timeout: 120_000,
         },
 
+        // ── SINY Widget ───────────────────────────────────────────────────────
+        // Flow: Widget (filters + calendar + slot) → Intake → Insurance → Add Info
+        {
+            name: 'siny-widget',
+            testDir: './tests/e2e/widget',
+            timeout: 120_000,
+            workers: 1,
+            retries: 1,
+        },
+
         // ── Admin ─────────────────────────────────────────────────────────────
         {
             name: 'admin',
