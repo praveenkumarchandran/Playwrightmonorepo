@@ -227,12 +227,20 @@ for (const client of PROD_CLIENTS) {
                 page.on('request', apptTypeListener);
 
                 try {
-                    // Reload before each service so selecting it always fires a fresh
-                    // getProviders call — prevents "skipped" when the same service is
-                    // already active and no new API call would otherwise be triggered.
-                    if (credentials._findApptUrl) {
+                    if (!hasIntake && credentials._findApptUrl) {
+                        // Non-intake clients: reload the page before each service so
+                        // selecting it always fires a fresh getProviders call.
                         await page.goto(credentials._findApptUrl, { waitUntil: 'networkidle', timeout: 20_000 }).catch(() => {});
                         await page.waitForTimeout(500);
+                    } else if (hasIntake && services.indexOf(svc) > 0) {
+                        // Intake clients (SINY): reloading breaks the session.
+                        // Instead, select a decoy service first to clear the active
+                        // selection, then select the target — forces a new API call.
+                        const decoy = services.find(s => s.filterReason !== svc.filterReason);
+                        if (decoy) {
+                            await slotPg.selectAppointmentReason(decoy.filterReason).catch(() => {});
+                            await page.waitForTimeout(400);
+                        }
                     }
                     if (loc) {
                         await slotPg.selectLocation(loc).catch(() => {});

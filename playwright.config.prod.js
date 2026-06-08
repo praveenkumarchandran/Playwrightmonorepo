@@ -15,7 +15,7 @@ import { defineConfig } from '@playwright/test';
 export default defineConfig({
     testMatch: '**/production/duplicateSlots.spec.js',
 
-    timeout:  600_000,   // 10 min — SINY Cosmetic has 5 services × multiple locations
+    timeout:  900_000,   // 15 min — SINY Cosmetic has 5 services + intake flow
     workers:  4,        // 4 clients checked in parallel
     retries:  1,
 
