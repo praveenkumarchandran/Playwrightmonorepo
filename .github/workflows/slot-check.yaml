@@ -26,7 +26,7 @@ jobs:
 
       - name: Check for duplicate slots on production
         id: slot_check
-        run: npx playwright test --config=playwright.config.prod.js --reporter=json
+        run: mkdir -p prod-results && npx playwright test --config=playwright.config.prod.js
         env:
           SETTER_BASE_URL: https://setter.layline.live
         continue-on-error: true
