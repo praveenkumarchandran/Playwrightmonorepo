@@ -15,9 +15,9 @@ import { defineConfig } from '@playwright/test';
 export default defineConfig({
     testMatch: '**/production/duplicateSlots.spec.js',
 
-    timeout:  900_000,   // 15 min — SINY Cosmetic has 5 services + intake flow
-    workers:  4,        // 4 clients checked in parallel
-    retries:  1,
+    timeout:  1_800_000,  // 30 min — SINY Cosmetic has 5 services × multi-location + intake flow
+    workers:  8,          // one worker per client so total time = slowest client
+    retries:  0,          // retrying a timeout failure doubles job time past the 30-min cron window
 
     reporter: [
         ['list'],
