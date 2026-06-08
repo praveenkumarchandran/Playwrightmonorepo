@@ -80,7 +80,7 @@ for (const spec of results.suites?.flatMap(s => s.specs ?? []) ?? []) {
 }
 
 const totalTests  = results.stats?.expected ?? 0;
-const totalFailed = results.stats?.unexpected ?? failures.length;
+const totalFailed = failures.length;
 
 const affectedNames = failures.map(f => f.title.replace(/\[|\]/g, '').replace(/No duplicate slots.*$/i, '').trim());
 
