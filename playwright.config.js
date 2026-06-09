@@ -120,7 +120,7 @@ export default defineConfig({
             testDir: './tests/e2e/widget',
             timeout: 240_000,   // 4 min — full flow + slow locations need extra time
             fullyParallel: true,
-            retries: 1,        // 1 retry for staging server flakiness
+            retries: 0,
         },
 
         // ── Admin ─────────────────────────────────────────────────────────────
