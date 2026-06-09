@@ -107,17 +107,40 @@ function availableDates(page) {
     return page.locator('[role="gridcell"]:not([disabled])').filter({ hasText: /^\d{1,2}$/ });
 }
 
-// Select first date that has time slots (tries up to 7 dates).
-// The first highlighted calendar date may have 0 provider slots — e.g. June 9 for
-// Botox at Upper East Side has no slots, but June 16 does. We scan until we find one.
+// Select first date that has time slots.
+// IMPORTANT: The widget auto-selects today's date and already shows its slots.
+// Re-clicking the auto-selected date DESELECTS it (slots disappear).
+// So: check for already-visible slots first, then scan other dates if needed.
 async function selectFirstSlot(page) {
     const dates = availableDates(page);
     const total = await dates.count();
 
-    for (let i = 0; i < Math.min(total, 7); i++) {
-        // dispatchEvent bypasses ALL pointer-event interception (more reliable than force:true)
-        await dates.nth(i).dispatchEvent('click');
-        await page.waitForTimeout(800);
+    // Widget auto-selects today's date after service selection.
+    // Two separate APIs fire: (1) service API → calendar dates, (2) date API → time slots.
+    // Actively wait up to 10s for slot buttons to appear (catches both API completions).
+    const slotLocator = page.locator('button').filter({ hasText: /\d{1,2}:\d{2}\s*(AM|PM)/i });
+    // Wait up to 5s for the auto-selected date's slot API to complete and render
+    await slotLocator.first().waitFor({ state: 'visible', timeout: 5_000 }).catch(() => {});
+
+    if (await slotLocator.count() > 0) {
+        const time = await slotLocator.first().textContent();
+        await slotLocator.first().click();
+        await page.waitForTimeout(200);
+        console.log(`  Auto-selected date: found slots — selected ${time?.trim()}`);
+        return time?.trim() ?? '';
+    }
+
+    // No auto-selected slots — scan available dates.
+    // Use page.mouse.click(x, y) with real screen coordinates — most reliable for triggering React.
+    for (let i = 1; i < Math.min(total, 14); i++) {
+        const box = await dates.nth(i).boundingBox().catch(() => null);
+        if (box) {
+            await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+        } else {
+            await dates.nth(i).dispatchEvent('click');
+        }
+        await page.waitForLoadState('networkidle', { timeout: 8_000 }).catch(() => {});
+        await page.waitForTimeout(500);
         const slots = page.locator('button').filter({ hasText: /\d{1,2}:\d{2}\s*(AM|PM)/i });
         if (await slots.count() > 0) {
             const time = await slots.first().textContent();
@@ -131,7 +154,7 @@ async function selectFirstSlot(page) {
     // Return null instead of throwing — some services have no providers at certain locations
     console.log('');
     console.log('  ┌─────────────────────────────────────────────────────┐');
-    console.log('  │  NO SLOTS AVAILABLE — checked first 7 calendar dates │');
+    console.log('  │  NO SLOTS AVAILABLE — checked first 14 calendar dates │');
     console.log('  │  Service may not be offered at this location         │');
     console.log('  │  Widget behavior: auto-switch location OR show popup │');
     console.log('  └─────────────────────────────────────────────────────┘');
@@ -824,7 +847,7 @@ for (const loc of ALL_LOCATIONS) {
                 let datesTried = 0;
                 let blocked = false;
 
-                for (let i = 0; i < Math.min(dateCount, 7); i++) {
+                for (let i = 0; i < Math.min(dateCount, 14); i++) {
                     // Dismiss any dialog blocking calendar clicks before each date attempt.
                     // Includes both the cosmetic fee popup AND the "not available" popup.
                     const anyDialog = page.locator('[role="dialog"]');
@@ -841,9 +864,15 @@ for (const loc of ALL_LOCATIONS) {
                         await page.waitForTimeout(800);
                     }
 
-                    // dispatchEvent bypasses ALL pointer-event interception (more reliable than force:true)
-                    await availableDates(page).nth(i).dispatchEvent('click');
-                    await page.waitForTimeout(1_200);
+                    // Real click (CDP) so React handles it → API fires → slots load.
+                    // dispatchEvent creates non-trusted events React may ignore.
+                    try {
+                        await availableDates(page).nth(i).click({ timeout: 3_000 });
+                    } catch {
+                        await availableDates(page).nth(i).dispatchEvent('click');
+                    }
+                    await page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => {});
+                    await page.waitForTimeout(300);
 
                     // Check for "not available for online scheduling" popup after date click
                     const notAvailPopup = page.locator('[role="dialog"]')
@@ -1230,7 +1259,7 @@ for (const svc of SERVICES) {
 // ── All 10 locations — Medical (Skin Problem → Acne) ─────────────────────────
 for (const loc of ALL_LOCATIONS) {
     test(`[Full Flow - Medical] ${loc} → Acne`, async ({ page }) => {
-        const completed = await runFullFlow(page, SERVICES[0], loc);
+        const completed = await runFullFlow(page, SERVICES[1], loc); // SERVICES[1]=Acne (SERVICES[0] is DEFAULT=RSR)
         if (!completed) {
             console.log(`  ℹ️ No slots at ${loc} — flow not completed`);
         }
@@ -1240,7 +1269,7 @@ for (const loc of ALL_LOCATIONS) {
 // ── All 10 locations — Cosmetic (Cosmetic Procedure → Botox) ─────────────────
 for (const loc of ALL_LOCATIONS) {
     test(`[Full Flow - Cosmetic] ${loc} → Botox treatment`, async ({ page }) => {
-        const completed = await runFullFlow(page, SERVICES[2], loc);
+        const completed = await runFullFlow(page, SERVICES[3], loc); // SERVICES[3]=Botox (SERVICES[0] is DEFAULT=RSR)
         if (!completed) {
             console.log(`  ℹ️ No slots at ${loc} for Botox — flow not completed`);
         }
