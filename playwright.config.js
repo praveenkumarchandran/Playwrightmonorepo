@@ -114,12 +114,13 @@ export default defineConfig({
 
         // ── SINY Widget ───────────────────────────────────────────────────────
         // Flow: Widget (filters + calendar + slot) → Intake → Insurance → Add Info
+        // fullyParallel: true — all tests in the single spec file run in parallel
         {
             name: 'siny-widget',
             testDir: './tests/e2e/widget',
-            timeout: 120_000,
-            workers: 1,
-            retries: 1,
+            timeout: 240_000,   // 4 min — full flow + slow locations need extra time
+            fullyParallel: true,
+            retries: 1,        // 1 retry for staging server flakiness
         },
 
         // ── Admin ─────────────────────────────────────────────────────────────
