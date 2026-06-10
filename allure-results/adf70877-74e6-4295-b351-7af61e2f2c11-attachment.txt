@@ -1,2 +1,0 @@
-Reason selected: Full Body Skin Exam
-"Full Body Skin Exam": providers/slots visible on findappointment ✓

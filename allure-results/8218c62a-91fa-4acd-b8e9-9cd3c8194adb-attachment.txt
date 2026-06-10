@@ -1,3 +1,0 @@
-Reason selected: Skin Problem
-Service type selected: Rash
-"Skin Problem → Rash": navigated away from landing ✓  (url: https://stage.setter.layline.live/sinydermatology/1/sinydermatologybayridge/intakequestion)

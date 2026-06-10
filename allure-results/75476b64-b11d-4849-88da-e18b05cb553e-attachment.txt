@@ -1,4 +1,0 @@
-Reason selected: Cosmetic Procedure
-Service type selected: Filler Treatment
-Popup dismissed via "Schedule Procedure"
-"Cosmetic Procedure → Filler Treatment": navigated to https://stage.setter.layline.live/sinydermatology/1/sinydermatologybayridge/intakequestion ✓

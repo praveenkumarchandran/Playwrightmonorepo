@@ -1,2 +1,0 @@
-Reason selected: Varithena Test
-"Varithena Test": no-availability message shown ✓

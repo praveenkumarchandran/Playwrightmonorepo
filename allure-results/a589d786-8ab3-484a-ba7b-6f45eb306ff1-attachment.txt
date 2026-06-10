@@ -1,8 +1,0 @@
-
-📌 STEP 0: Login
-🌐 After login URL: https://stage.setter.layline.live/admin/thenerveanddiscinstitute/1/patients
-
-📌 STEP 1: Landing Page
-✅ Clicked button: "New Patient"
-
-📌 STEP 2: Slot Selection

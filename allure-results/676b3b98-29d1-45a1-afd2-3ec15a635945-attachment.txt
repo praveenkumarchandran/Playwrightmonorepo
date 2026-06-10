@@ -1,2 +1,0 @@
-Reason selected: Telehealth
-Telehealth: error message "cannot be booked online" confirmed ✓

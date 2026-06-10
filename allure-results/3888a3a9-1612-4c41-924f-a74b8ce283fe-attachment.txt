@@ -1,2 +1,0 @@
-Reason selected: Psychiatric Evaluation (Virtual)
-"Psychiatric Evaluation (Virtual)": providers/slots visible on findappointment ✓

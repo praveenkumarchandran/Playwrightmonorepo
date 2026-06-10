@@ -1,4 +1,0 @@
-✅ Navigated to find appointment page
-✅ TNDI date clicked
-✅ TNDI time clicked
-✅ Fixture: reached https://stage.setter.layline.live/thenerveanddiscinstitute/1/thenerveanddiscinstitutefarmington/additionaldetails

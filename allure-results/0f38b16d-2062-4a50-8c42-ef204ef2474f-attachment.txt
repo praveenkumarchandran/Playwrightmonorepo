@@ -1,7 +1,0 @@
-Reason selected: Acne
-✅ Selected (dropdown): Minnetonka
-✅ Selected (autocomplete): Acne
-Show More clicked for provider card 0
-Time slot clicked
-Continue clicked
-Provider "Jesse Ochoa" confirmed in appointment summary

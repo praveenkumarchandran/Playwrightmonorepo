@@ -1,8 +1,0 @@
-Reason selected: Skin Problem
-Service type selected: Acne
-TNDI date clicked
-TNDI time clicked
-Primary Insurance Holder set to: Spouse
-Stepper navigated to: Intake Questions
-Stepper navigated to: Choose Date & Time
-Stepper navigated to: Add Insurance

@@ -1,4 +1,0 @@
-Reason selected: Psychiatric Evaluation (Virtual)
-✅ Selected (dropdown): Psychiatric Evaluation (Virtual)
-Service type changed to: Psychiatric Evaluation (In-Office)
-"Psychiatric Evaluation (In-Office)": no-availability message shown (expected for this service)

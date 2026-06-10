@@ -1,4 +1,0 @@
-TNDI date clicked
-TNDI time clicked
-Reached additionaldetails page
-State saved → tests/.auth/booking-state.json

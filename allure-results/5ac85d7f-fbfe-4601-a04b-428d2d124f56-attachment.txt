@@ -1,2 +1,0 @@
-Reason selected: Consult
-"Consult": providers/slots visible on findappointment ✓

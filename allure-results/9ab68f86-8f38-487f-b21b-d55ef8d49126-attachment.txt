@@ -1,5 +1,0 @@
-Reason selected: Consult
-✅ Selected (dropdown): Main Office
-✅ Selected (autocomplete): Consult
-Clarus slot clicked
-Manually Enter Details button absent — fields appear directly (admin config)

@@ -1,2 +1,0 @@
-Reason selected: Rash
-"Rash": no-availability message shown ✓
