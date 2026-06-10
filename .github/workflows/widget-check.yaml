@@ -1,0 +1,64 @@
+name: SINY Widget Production Check
+
+on:
+  schedule:
+    # Runs daily at 9 AM UTC (2:30 PM IST) — widget flow validation on production
+    - cron: "0 9 * * *"
+  workflow_dispatch:  # Manual trigger
+
+jobs:
+  check-widget:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run SINY Widget tests on Production
+        id: widget_check
+        run: mkdir -p prod-results && npx playwright test --config=playwright.config.widget.prod.js
+        env:
+          SETTER_BASE_URL: https://setter.layline.live
+        continue-on-error: true
+
+      - name: Generate widget test report
+        if: always()
+        run: |
+          node scripts/widget-check-report.mjs \
+            prod-results \
+            "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            widget-check-email.html
+        continue-on-error: true
+
+      - name: Upload widget test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: widget-check-results
+          path: |
+            prod-results/
+            widget-check-email.html
+          retention-days: 7
+
+      - name: Send alert email if tests failed
+        if: steps.widget_check.outcome == 'failure'
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          subject: "⚠️ SINY Widget Tests FAILED on Production — ${{ github.run_id }}"
+          to: praveen.c@jseven.in
+          from: GitHub Actions
+          html_body: file://widget-check-email.html

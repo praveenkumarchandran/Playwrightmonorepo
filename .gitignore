@@ -2,6 +2,7 @@ node_modules/
 test-results/
 prod-results/
 playwright-report/
+allure-results/
 slot-check-email.html
 *.zip
 *.tar.gz
