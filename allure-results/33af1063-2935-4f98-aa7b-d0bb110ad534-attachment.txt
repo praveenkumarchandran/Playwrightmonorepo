@@ -1,4 +1,0 @@
-Reason selected: Cosmetic Procedure
-Service type selected: Tattoo Removal
-Popup dismissed via "Schedule Procedure"
-"Cosmetic Procedure → Tattoo Removal": navigated away from landing ✓  (url: https://stage.setter.layline.live/sinydermatology/1/sinydermatologybayridge/intakequestion)

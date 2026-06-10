@@ -1,4 +1,0 @@
-Reason selected: Cosmetic Procedure
-Gray service selected: Microneedling
-Popup service selected: Sclerotherapy
-Valid service selected: Botox treatment

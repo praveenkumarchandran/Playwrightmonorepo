@@ -1,5 +1,0 @@
-Reason selected: Acne
-✅ Selected (dropdown): Minnetonka
-✅ Selected (autocomplete): Acne
-Service type changed to: Full Body Skin Exam
-"Full Body Skin Exam": 2 provider card(s) visible

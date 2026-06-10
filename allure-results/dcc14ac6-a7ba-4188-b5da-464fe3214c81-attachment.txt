@@ -1,6 +1,0 @@
-Reason selected: Cosmetic Procedure
-Service type selected: Botox treatment
-Popup dismissed via "Schedule Procedure"
-Show More clicked for provider card 0
-Time slot clicked
-Continue clicked

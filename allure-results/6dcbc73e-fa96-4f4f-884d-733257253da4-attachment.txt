@@ -1,4 +1,0 @@
-TNDI date clicked
-TNDI time clicked
-Worker fixture: reached additionaldetails — shared across all tests in this worker
-SMS consent checked

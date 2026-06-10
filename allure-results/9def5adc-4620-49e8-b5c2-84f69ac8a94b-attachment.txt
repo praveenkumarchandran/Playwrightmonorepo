@@ -1,5 +1,0 @@
-
-📌 STEP 0: Login
-🌐 After login: https://stage.setter.layline.live/admin/minnesotaurology/1/patients
-
-📌 STEP 1: Landing Page

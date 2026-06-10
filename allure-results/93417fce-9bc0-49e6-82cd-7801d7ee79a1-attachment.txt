@@ -1,4 +1,0 @@
-Reason selected: Consult
-✅ Selected (dropdown): Main Office
-✅ Selected (autocomplete): Consult
-TC-FA-NA-01: Slots available — no-availability message not needed
