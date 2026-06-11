@@ -20,7 +20,7 @@ export default defineConfig({
 
     timeout:  240_000,   // 4 min per test — prod may be slower than staging
     workers:  2,
-    retries:  1,
+    retries:  0,
     fullyParallel: true,
 
     reporter: [

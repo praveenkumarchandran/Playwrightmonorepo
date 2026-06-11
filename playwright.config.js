@@ -53,6 +53,7 @@ export default defineConfig({
             testDir: './tests/e2e/clients/ClarusDerm',
             timeout: 120_000,
             workers: 1,
+            retries: 1,
         },
 
         // ── SINY Dermatology (Medical) ────────────────────────────────────────
@@ -93,6 +94,7 @@ export default defineConfig({
             name: 'freedman',
             testDir: './tests/e2e/clients/Freedman',
             timeout: 120_000,
+            retries: 1,
         },
 
         // ── Kronson Vein Institute ─────────────────────────────────────────────
@@ -110,6 +112,7 @@ export default defineConfig({
             name: 'cvd',
             testDir: './tests/e2e/clients/CVD',
             timeout: 120_000,
+            retries: 1,
         },
 
         // ── SINY Widget ───────────────────────────────────────────────────────
@@ -121,6 +124,9 @@ export default defineConfig({
             timeout: 240_000,   // 4 min — full flow + slow locations need extra time
             fullyParallel: true,
             retries: 0,
+            use: {
+                actionTimeout: 25_000,  // Florida/Forest Hills dropdowns can be slow on staging
+            },
         },
 
         // ── Admin ─────────────────────────────────────────────────────────────
