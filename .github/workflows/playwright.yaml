@@ -71,7 +71,7 @@ jobs:
         # Skip individual matrix jobs that don't match the selected project
         if: inputs.project == 'all' || inputs.project == '' || inputs.project == matrix.project
         run: |
-          CMD="npx playwright test --project=${{ matrix.project }}"
+          CMD="npx playwright test --project=${{ matrix.project }} --workers=2"
           if [ -n "${{ inputs.grep }}" ]; then
             CMD="$CMD --grep \"${{ inputs.grep }}\""
           fi
@@ -116,7 +116,7 @@ jobs:
       - name: Run ${{ matrix.project }}
         if: inputs.project == 'all' || inputs.project == '' || inputs.project == matrix.project
         run: |
-          CMD="npx playwright test --project=${{ matrix.project }}"
+          CMD="npx playwright test --project=${{ matrix.project }} --workers=2"
           if [ -n "${{ inputs.grep }}" ]; then
             CMD="$CMD --grep \"${{ inputs.grep }}\""
           fi

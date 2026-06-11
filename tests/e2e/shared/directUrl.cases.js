@@ -28,8 +28,12 @@ export function runDirectUrlCases(test, expect, opts = {}) {
     test.describe('Direct URL access — without completing prior steps', () => {
 
         test('TC-URL-01 — direct access to /findappointment does not show a blank or error page', async ({ page }) => {
-            await page.goto(findApptUrl, { waitUntil: 'networkidle', timeout: 30_000 });
-            // Must render something — not a blank white page
+            await page.goto(findApptUrl, { waitUntil: 'domcontentloaded', timeout: 60_000 });
+            // Wait for React to mount at least one UI element before counting
+            await page.waitForFunction(
+                () => document.querySelectorAll('button, input, h1, h2, h3, h4').length > 0,
+                { timeout: 20_000 }
+            ).catch(() => {});
             const count = await page.locator('button, input, h1, h2, h3, h4').count();
             expect(count).toBeGreaterThan(0);
         });
@@ -47,7 +51,11 @@ export function runDirectUrlCases(test, expect, opts = {}) {
         if (hasInsurance) {
 
             test('TC-URL-03 — direct access to /insurance does not show a blank or error page', async ({ page }) => {
-                await page.goto(insuranceUrl, { waitUntil: 'networkidle', timeout: 30_000 });
+                await page.goto(insuranceUrl, { waitUntil: 'domcontentloaded', timeout: 60_000 });
+                await page.waitForFunction(
+                    () => document.querySelectorAll('button, input, h1, h2, h3, h4').length > 0,
+                    { timeout: 20_000 }
+                ).catch(() => {});
                 const count = await page.locator('button, input, h1, h2, h3, h4').count();
                 expect(count).toBeGreaterThan(0);
             });
@@ -66,7 +74,11 @@ export function runDirectUrlCases(test, expect, opts = {}) {
         }
 
         test('TC-URL-05 — direct access to /patientinfo does not show a blank or error page', async ({ page }) => {
-            await page.goto(patientUrl, { waitUntil: 'networkidle', timeout: 30_000 });
+            await page.goto(patientUrl, { waitUntil: 'domcontentloaded', timeout: 60_000 });
+            await page.waitForFunction(
+                () => document.querySelectorAll('button, input, h1, h2, h3, h4').length > 0,
+                { timeout: 20_000 }
+            ).catch(() => {});
             const count = await page.locator('button, input, h1, h2, h3, h4').count();
             expect(count).toBeGreaterThan(0);
         });

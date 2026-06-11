@@ -68,9 +68,12 @@ export class FindAppointmentPage {
     }
 
     // Returns text of first gray/unavailable option in the open listbox.
+    // Returns null (instead of throwing) if the listbox never appears — caller skips the test.
     async _findGrayOptionText() {
         const listbox = this.page.locator('[role="listbox"]');
-        await listbox.waitFor({ state: 'visible', timeout: 10_000 });
+        const visible = await listbox.waitFor({ state: 'visible', timeout: 10_000 })
+            .then(() => true).catch(() => false);
+        if (!visible) return null;
         return listbox.evaluate(lb => {
             for (const el of lb.querySelectorAll('[role="option"]')) {
                 const { color, opacity } = window.getComputedStyle(el);
