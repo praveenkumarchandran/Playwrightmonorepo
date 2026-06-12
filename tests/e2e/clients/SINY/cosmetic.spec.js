@@ -51,9 +51,9 @@ runFindAppointmentCases(test, expect, {
     nextPageAfterSlot: 'patientInfo',
 });
 
-// Panel shows the reason ("Cosmetic Procedure"), consistent with SINY Medical showing "Skin Problem"
+// Cosmetic summary shows "New Patient" (patient type), not the service reason
 runPatientPageSummaryCases(test, expect, {
-    expectedAppointmentType: CLIENTS.SINY_COSMETIC.reason,  // 'Cosmetic Procedure'
+    expectedAppointmentType: null,  // cosmetic panel shows patient type, not service name
     hasProviderName:          true,
 });
 
