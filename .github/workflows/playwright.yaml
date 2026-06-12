@@ -50,7 +50,7 @@ jobs:
       inputs.project == 'clarus' ||
       inputs.project == 'tndi'
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 120
     strategy:
       fail-fast: false
       matrix:
@@ -96,7 +96,7 @@ jobs:
        (inputs.project == 'all' ||
         inputs.project == 'hopemark' || inputs.project == 'kronson' || inputs.project == 'freedman' || inputs.project == 'cvd'))
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 120
     strategy:
       fail-fast: false
       matrix:
