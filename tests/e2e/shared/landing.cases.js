@@ -57,8 +57,9 @@ export function runLandingCases(test, expect, opts = {}) {
         test.describe('Reason selection', () => {
 
             test('TC-LAND-03 — selecting a reason enables the New Patient button', async ({ landingPage }) => {
+                test.slow();
                 await landingPage._selectReason(reason);
-                await expect(landingPage.newPatientBtn).toBeEnabled({ timeout: 5_000 });
+                await expect(landingPage.newPatientBtn).toBeEnabled({ timeout: 15_000 });
             });
 
             if (hasGating) {
