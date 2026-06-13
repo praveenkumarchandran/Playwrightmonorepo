@@ -58,7 +58,7 @@ export class InsurancePage {
 
     async selectInsuranceType(type) {
         const hasAutocomplete = await this.insuranceInput
-            .isVisible({ timeout: 5_000 })
+            .isVisible({ timeout: 10_000 })
             .catch(() => false);
 
         if (hasAutocomplete) {
@@ -66,17 +66,17 @@ export class InsurancePage {
             await this.insuranceInput.click();
             await this.insuranceInput.fill(type);
             const option = this.page.locator(`.MuiAutocomplete-option:has-text("${type}")`);
-            await option.waitFor({ state: 'visible', timeout: 10_000 });
+            await option.waitFor({ state: 'visible', timeout: 20_000 });
             await option.click();
         } else {
             // Kronson-style — MUI Select: click trigger, pick from listbox
-            await this.insuranceSelect.waitFor({ state: 'visible', timeout: 10_000 });
+            await this.insuranceSelect.waitFor({ state: 'visible', timeout: 20_000 });
             await this.insuranceSelect.click();
             const option = this.page
                 .locator('[role="option"], li[role="option"]')
                 .filter({ hasText: type })
                 .first();
-            await option.waitFor({ state: 'visible', timeout: 10_000 });
+            await option.waitFor({ state: 'visible', timeout: 20_000 });
             await option.click();
         }
     }
@@ -113,15 +113,15 @@ export class InsurancePage {
     }
 
     async selectPlan(value = 'Other') {
-        await this.planInput.waitFor({ state: 'visible', timeout: 10_000 });
+        await this.planInput.waitFor({ state: 'visible', timeout: 20_000 });
         await this.planInput.fill(value);
         const option = this.page.locator(`.MuiAutocomplete-option:has-text("${value}")`);
-        await option.waitFor({ state: 'visible', timeout: 10_000 });
+        await option.waitFor({ state: 'visible', timeout: 20_000 });
         await option.click();
     }
 
     async fillPlanDetails(name = 'Test Insurance Co.') {
-        await this.planNameInput.waitFor({ state: 'visible', timeout: 10_000 });
+        await this.planNameInput.waitFor({ state: 'visible', timeout: 20_000 });
         await this.planNameInput.fill(name);
     }
 
@@ -168,11 +168,11 @@ export class InsurancePage {
                 : allTriggers.last();  // Gender not yet shown — Primary Holder is last
         }
 
-        await trigger.waitFor({ state: 'visible', timeout: 10_000 });
+        await trigger.waitFor({ state: 'visible', timeout: 20_000 });
         await trigger.click();
 
         const option = this.page.locator('[role="option"]').filter({ hasText: value }).first();
-        await option.waitFor({ state: 'visible', timeout: 5_000 });
+        await option.waitFor({ state: 'visible', timeout: 10_000 });
         await option.click();
         console.log(`Primary Insurance Holder set to: ${value}`);
     }
@@ -185,7 +185,7 @@ export class InsurancePage {
             .filter({ hasText: value })
             .first();
 
-        await option.waitFor({ state: 'visible', timeout: 10_000 });
+        await option.waitFor({ state: 'visible', timeout: 20_000 });
         await option.click();
     }
 
@@ -199,10 +199,10 @@ export class InsurancePage {
         const trigger = this.page.locator(
             '[class*="MuiSelect-select"], [class*="MuiInputBase-input"][role="combobox"]'
         ).last();
-        await trigger.waitFor({ state: 'visible', timeout: 10_000 });
+        await trigger.waitFor({ state: 'visible', timeout: 20_000 });
         await trigger.click();
         const option = this.page.locator('[role="option"]').filter({ hasText: value }).first();
-        await option.waitFor({ state: 'visible', timeout: 5_000 });
+        await option.waitFor({ state: 'visible', timeout: 10_000 });
         await option.click();
         console.log(`Insured gender set to: ${value}`);
     }
@@ -214,17 +214,17 @@ export class InsurancePage {
      */
     async clickStepperStep(stepLabel) {
         const step = this.page.getByText(stepLabel, { exact: true }).first();
-        await step.waitFor({ state: 'visible', timeout: 10_000 });
+        await step.waitFor({ state: 'visible', timeout: 20_000 });
         await step.click();
         console.log(`Stepper navigated to: ${stepLabel}`);
     }
 
     async fillInsuranceDetails() {
         const insuranceInput = this.page.locator('input[aria-autocomplete="list"]').last();
-        await insuranceInput.waitFor({ state: 'visible', timeout: 10_000 });
+        await insuranceInput.waitFor({ state: 'visible', timeout: 20_000 });
         await insuranceInput.fill('Connecticare');
         const insuranceOption = this.page.locator('.MuiAutocomplete-option').first();
-        await insuranceOption.waitFor({ state: 'visible', timeout: 10_000 });
+        await insuranceOption.waitFor({ state: 'visible', timeout: 20_000 });
         await insuranceOption.click();
 
         await this.page.fill('input[name="insurance_group_id"]', '12345678');
@@ -243,7 +243,7 @@ export class InsurancePage {
     }
 
     async continue() {
-        await this.nextBtn.waitFor({ state: 'visible', timeout: 10_000 });
+        await this.nextBtn.waitFor({ state: 'visible', timeout: 20_000 });
         await this.nextBtn.click();
     }
 
