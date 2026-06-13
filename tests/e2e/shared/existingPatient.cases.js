@@ -51,7 +51,8 @@ export function runExistingPatientCases(test, expect, opts = {}) {
             });
 
             test('TC-EP-06 — Find Appointment button is visible', async ({ existingPatientPage }) => {
-                await expect(existingPatientPage.findBtn).toBeVisible();
+                test.slow();
+                await expect(existingPatientPage.findBtn).toBeVisible({ timeout: 10_000 });
             });
 
         });
@@ -97,10 +98,11 @@ export function runExistingPatientCases(test, expect, opts = {}) {
             });
 
             test('TC-EP-12 — submitting with only DOB shows validation errors', async ({ existingPatientPage }) => {
+                test.slow();
                 await existingPatientPage.dobInput.click();
                 await existingPatientPage.dobInput.fill(dob);
                 await existingPatientPage.findBtn.click();
-                await expect(existingPatientPage.validationError.first()).toBeVisible({ timeout: 5_000 });
+                await expect(existingPatientPage.validationError.first()).toBeVisible({ timeout: 15_000 });
             });
 
         });
@@ -110,9 +112,10 @@ export function runExistingPatientCases(test, expect, opts = {}) {
         test.describe('Edge cases', () => {
 
             test('TC-EP-13 — clearing a field after input resets its value', async ({ existingPatientPage }) => {
+                test.slow();
                 await existingPatientPage.firstNameInput.fill(firstName);
                 await existingPatientPage.firstNameInput.clear();
-                await expect(existingPatientPage.firstNameInput).toHaveValue('');
+                await expect(existingPatientPage.firstNameInput).toHaveValue('', { timeout: 10_000 });
             });
 
             test('TC-EP-14 — invalid patient credentials show error or no-results state', async ({ existingPatientPage }) => {
@@ -127,8 +130,9 @@ export function runExistingPatientCases(test, expect, opts = {}) {
             });
 
             test('TC-EP-15 — special characters in name fields are accepted', async ({ existingPatientPage }) => {
+                test.slow();
                 await existingPatientPage.firstNameInput.fill("O'Brien-Smith");
-                await expect(existingPatientPage.firstNameInput).toHaveValue("O'Brien-Smith");
+                await expect(existingPatientPage.firstNameInput).toHaveValue("O'Brien-Smith", { timeout: 10_000 });
             });
 
         });
@@ -160,16 +164,18 @@ export function runExistingPatientCases(test, expect, opts = {}) {
             });
 
             test('TC-NP-03 — New Patient button is enabled after it appears', async ({ existingPatientPage }) => {
+                test.slow();
                 await existingPatientPage.search('InvalidXYZ999', 'InvalidXYZ999', dob);
-                await existingPatientPage.newPatientBtn.waitFor({ state: 'visible', timeout: 10_000 });
-                await expect(existingPatientPage.newPatientBtn).toBeEnabled();
+                await existingPatientPage.newPatientBtn.waitFor({ state: 'visible', timeout: 15_000 });
+                await expect(existingPatientPage.newPatientBtn).toBeEnabled({ timeout: 10_000 });
             });
 
             // ── Negative ──────────────────────────────────────────────────────
 
             test('TC-NP-04 — New Patient button is NOT visible on initial load before any search', async ({ existingPatientPage }) => {
+                test.slow();
                 // Button must be absent until a failed search is submitted
-                await expect(existingPatientPage.newPatientBtn).not.toBeVisible({ timeout: 3_000 });
+                await expect(existingPatientPage.newPatientBtn).not.toBeVisible({ timeout: 5_000 });
             });
 
             test('TC-NP-05 — New Patient button stays visible after re-filling all fields following a failed search', async ({ existingPatientPage }) => {

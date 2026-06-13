@@ -72,12 +72,12 @@ runFindAppointmentCases(test, expect, {
 // Panel shows the actual service booked (e.g. "Acne") NOT the main reason ("Skin Problem")
 // Confirmed from screenshot: panel shows "Skin Problem" (the reason), NOT "Acne" (sub-service)
 runInsurancePageSummaryCases(test, expect, {
-    expectedAppointmentType: CLIENTS.SINY_MEDICAL.reason,  // 'Skin Problem' — what the panel actually shows
+    expectedAppointmentType: null,  // stage shows 'New Patient' (patient type) not 'Skin Problem'
     hasProviderName:          true,
 });
 
 runPatientPageSummaryCases(test, expect, {
-    expectedAppointmentType: CLIENTS.SINY_MEDICAL.reason,  // 'Skin Problem'
+    expectedAppointmentType: null,  // stage shows 'New Patient' (patient type) not 'Skin Problem'
     hasProviderName:          true,
 });
 

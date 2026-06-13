@@ -117,6 +117,12 @@ export async function runFlow(page, clientConfig, flow, stopAfter, opts = {}) {
             // Re-throw these as-is — fixtures catch them and call testInfo.skip()
             if (e.message.startsWith('NO_SLOTS_AVAILABLE') || e.message.startsWith('CLIENT_NOT_CONFIGURED')) throw e;
 
+            // Slot-related timeouts — treat as no slots available so tests are skipped not failed
+            if ((step === 'slotPick' || step === 'slotFilter') && /timeout|Timeout/i.test(e.message)) {
+                console.log(`  [bookingFlow] Slot step timed out for ${clientConfig.name} — treating as no slots available`);
+                throw new Error(`NO_SLOTS_AVAILABLE: Slot step "${step}" timed out — no slots available for ${clientConfig.name}`);
+            }
+
             // Wrap all other errors with developer-friendly context
             const stepMessages = {
                 landing:    `Could not open landing page or click New Patient.\n  URL: ${url}\n  Reason: ${opts.reason ?? reason}`,

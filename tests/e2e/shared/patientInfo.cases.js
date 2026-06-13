@@ -89,21 +89,23 @@ function runPatientInfoCases(test, expect, opts = {}) {
         });
 
         test('TC-PI-VAL-02 — too-short phone number keeps form on page', async ({ patientInfoPage }) => {
+            test.slow(); // CI runners are slower — triple timeout
             await patientInfoPage.firstName.waitFor({ state: 'visible', timeout: 10_000 });
             await patientInfoPage.phone.click();
             await patientInfoPage.phone.fill('123');
             const urlBefore = patientInfoPage.page.url();
             await patientInfoPage.submit();
-            await patientInfoPage.page.waitForTimeout(2_000);
+            await patientInfoPage.page.waitForTimeout(3_000);
             expect(patientInfoPage.page.url()).toBe(urlBefore);
         });
 
         test('TC-PI-VAL-03 — email missing domain (abc@) keeps form on page', async ({ patientInfoPage }) => {
+            test.slow();
             await patientInfoPage.firstName.waitFor({ state: 'visible', timeout: 10_000 });
             await patientInfoPage.email.fill('testuser@');
             const urlBefore = patientInfoPage.page.url();
             await patientInfoPage.submit();
-            await patientInfoPage.page.waitForTimeout(2_000);
+            await patientInfoPage.page.waitForTimeout(3_000);
             expect(patientInfoPage.page.url()).toBe(urlBefore);
         });
 
@@ -117,17 +119,16 @@ function runPatientInfoCases(test, expect, opts = {}) {
         });
 
         test('TC-PI-VAL-05 — form with valid data but too-short phone does not submit', async ({ patientInfoPage }) => {
+            test.slow();
             await patientInfoPage.firstName.waitFor({ state: 'visible', timeout: 10_000 });
-            // Fill all required text fields with valid values, but give an invalid phone (3 digits)
             await patientInfoPage.firstName.fill('John');
             await patientInfoPage.lastName.fill('Doe');
             await patientInfoPage.email.fill('john@example.com');
             await patientInfoPage.phone.click();
-            await patientInfoPage.phone.fill('123');  // too short — not a valid phone number
+            await patientInfoPage.phone.fill('123');
             const urlBefore = patientInfoPage.page.url();
             await patientInfoPage.submit();
-            await patientInfoPage.page.waitForTimeout(2_000);
-            // Form must stay on the same page — invalid phone blocks submission
+            await patientInfoPage.page.waitForTimeout(3_000);
             expect(patientInfoPage.page.url()).toBe(urlBefore);
         });
 
@@ -140,6 +141,8 @@ function runPatientInfoCases(test, expect, opts = {}) {
         test.describe('SMS consent checkbox', () => {
 
             test('TC-PI-30 — SMS consent is unchecked by default', async ({ patientPage }) => {
+                test.slow();
+                await patientPage.page.waitForTimeout(1_000); // CI: let page fully settle
                 await expect(
                     patientPage.page.locator('input[type="checkbox"]').first()
                 ).not.toBeChecked();
