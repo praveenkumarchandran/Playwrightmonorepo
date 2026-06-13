@@ -119,10 +119,11 @@ export class SlotPage {
                 noAvailLocator.waitFor({ state: 'visible', timeout: 15_000 }).then(() => 'noavail'),
             ]).catch(() => 'noavail');
             if (result === 'noavail') {
+                console.log(`  [SlotPage] No slots available — no datetime buttons found within 15s`);
                 throw new Error('NO_SLOTS_AVAILABLE: No datetime slots available in staging');
             }
             await datetimeBtn.click();
-            console.log(`Datetime slot clicked`);
+            console.log(`  [SlotPage] Datetime slot clicked`);
             return;
         }
 
@@ -152,11 +153,12 @@ export class SlotPage {
             ]).catch(() => 'noavail');
 
             if (result === 'noavail') {
+                console.log(`  [SlotPage] No slots available — no Clarus slots found within 20s`);
                 throw new Error('NO_SLOTS_AVAILABLE: Clarus has no online slots in staging');
             }
 
             await this.clarusSlot.click();
-            console.log(`Clarus slot clicked`);
+            console.log(`  [SlotPage] Clarus slot clicked`);
         } else {
             // TNDI / Kronson / Freedman: date strip + time slot buttons
             const result = await Promise.race([
@@ -165,11 +167,12 @@ export class SlotPage {
             ]).catch(() => 'noavail');
 
             if (result === 'noavail') {
+                console.log(`  [SlotPage] No slots available — no date/time buttons found within 15s`);
                 throw new Error('NO_SLOTS_AVAILABLE: No date/time slots available in staging');
             }
 
             await this.tndiDateBtn.click();
-            console.log(`TNDI date clicked`);
+            console.log(`  [SlotPage] TNDI date clicked`);
 
             await this.tndiTimeBtn.waitFor({ state: 'visible', timeout: 10_000 });
             await this.tndiTimeBtn.click();

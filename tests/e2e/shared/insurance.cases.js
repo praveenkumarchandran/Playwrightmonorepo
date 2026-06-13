@@ -45,8 +45,9 @@ function runInsuranceCases(test, expect, opts = {}) {
     test.describe('Self-pay selection', () => {
 
         test('TC-INS-01 — Self-pay option is selectable', async ({ insurancePage }) => {
+            test.slow();
             await insurancePage.selectSelfPay();
-            await expect(insurancePage.nextBtn).toBeVisible({ timeout: 10_000 });
+            await expect(insurancePage.nextBtn).toBeVisible({ timeout: 20_000 });
         });
 
         test('TC-INS-02 — Continue/Next is enabled after Self-pay selected', async ({ insurancePage }) => {

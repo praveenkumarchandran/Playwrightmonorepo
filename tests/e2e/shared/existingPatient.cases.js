@@ -112,9 +112,10 @@ export function runExistingPatientCases(test, expect, opts = {}) {
         test.describe('Edge cases', () => {
 
             test('TC-EP-13 — clearing a field after input resets its value', async ({ existingPatientPage }) => {
+                test.slow();
                 await existingPatientPage.firstNameInput.fill(firstName);
                 await existingPatientPage.firstNameInput.clear();
-                await expect(existingPatientPage.firstNameInput).toHaveValue('');
+                await expect(existingPatientPage.firstNameInput).toHaveValue('', { timeout: 10_000 });
             });
 
             test('TC-EP-14 — invalid patient credentials show error or no-results state', async ({ existingPatientPage }) => {

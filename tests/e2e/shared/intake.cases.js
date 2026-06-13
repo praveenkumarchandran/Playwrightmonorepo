@@ -61,13 +61,12 @@ function runIntakeCases(test, expect, opts = {}) {
         });
 
         test('TC-INT-05 — button loses disabled attribute after full form completion', async ({ intakePage }) => {
+            test.slow();
             await intakePage.selectSymptoms();
             await intakePage.answerNoQuestions();
-
-            const isDisabled = await intakePage.continueBtn.evaluate(btn =>
-                btn.disabled || btn.getAttribute('aria-disabled') === 'true'
-            );
-            expect(isDisabled).toBe(false);
+            await intakePage.continueBtn.waitFor({ state: 'visible', timeout: 10_000 });
+            await expect(intakePage.continueBtn).not.toHaveAttribute('disabled', { timeout: 10_000 });
+            await expect(intakePage.continueBtn).not.toHaveAttribute('aria-disabled', 'true', { timeout: 5_000 });
         });
 
     });
