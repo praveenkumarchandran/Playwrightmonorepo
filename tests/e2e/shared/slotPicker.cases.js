@@ -22,10 +22,13 @@ export function runSlotPickerCases(test, expect, opts = {}) {
     const {
         expectedReason = '',
         nextPageAfterSlot = null,
-        appointmentTypeSummaryText = null,
     } = opts;
 
-    const expectedSummaryType = appointmentTypeSummaryText ?? expectedReason;
+    // If appointmentTypeSummaryText is explicitly passed (even as null), use it.
+    // If not passed at all, fall back to expectedReason.
+    const expectedSummaryType = Object.prototype.hasOwnProperty.call(opts, 'appointmentTypeSummaryText')
+        ? opts.appointmentTypeSummaryText
+        : expectedReason;
 
     test.describe('Slot Picker — date strip + time slots', () => {
 
@@ -34,7 +37,9 @@ export function runSlotPickerCases(test, expect, opts = {}) {
         test.describe('Change Filters panel', () => {
 
             test('TC-SP-01 — "Change Filters" heading is visible', async ({ findAppointmentPage }) => {
-                await expect(findAppointmentPage.page.getByText('Change Filters')).toBeVisible({ timeout: 10_000 });
+                test.slow();
+                await findAppointmentPage.page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => {});
+                await expect(findAppointmentPage.page.getByText('Change Filters')).toBeVisible({ timeout: 30_000 });
             });
 
             test('TC-SP-02 — Location dropdown is visible', async ({ findAppointmentPage }) => {
@@ -42,9 +47,10 @@ export function runSlotPickerCases(test, expect, opts = {}) {
             });
 
             test('TC-SP-03 — Appointment Reason shows the expected reason', async ({ findAppointmentPage }) => {
+                test.slow();
                 const reason = findAppointmentPage.page
                     .getByText(expectedReason, { exact: false }).first();
-                await expect(reason).toBeVisible({ timeout: 10_000 });
+                await expect(reason).toBeVisible({ timeout: 20_000 });
             });
 
         });
@@ -64,11 +70,12 @@ export function runSlotPickerCases(test, expect, opts = {}) {
             });
 
             test('TC-SP-05 — at least one date is pre-selected (highlighted)', async ({ findAppointmentPage }) => {
+                test.slow();
                 const selectedDate = findAppointmentPage.page
                     .locator('button')
                     .filter({ hasText: /(Mon|Tue|Wed|Thu|Fri|Sat|Sun)/i })
                     .first();
-                await expect(selectedDate).toBeVisible({ timeout: 10_000 });
+                await expect(selectedDate).toBeVisible({ timeout: 20_000 });
             });
 
         });

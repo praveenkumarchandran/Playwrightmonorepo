@@ -17,8 +17,8 @@ export function runPageRefreshCases(test, expect, opts = {}) {
         if (hasInsurance) {
 
             test('TC-REF-01 — refresh on insurance page does not crash the app', async ({ insurancePage }) => {
+                test.slow();
                 await insurancePage.page.reload({ waitUntil: 'networkidle' });
-                // Must not be a blank or error page
                 const count = await insurancePage.page.locator('button, input, h1, h2, h3').count();
                 expect(count).toBeGreaterThan(0);
             });

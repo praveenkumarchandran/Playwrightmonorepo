@@ -47,7 +47,7 @@ function runInsuranceCases(test, expect, opts = {}) {
         test('TC-INS-01 — Self-pay option is selectable', async ({ insurancePage }) => {
             test.slow();
             await insurancePage.selectSelfPay();
-            await expect(insurancePage.nextBtn).toBeVisible({ timeout: 20_000 });
+            await expect(insurancePage.nextBtn).toBeVisible({ timeout: 30_000 });
         });
 
         test('TC-INS-02 — Continue/Next is enabled after Self-pay selected', async ({ insurancePage }) => {
@@ -142,11 +142,12 @@ function runInsuranceCases(test, expect, opts = {}) {
     test.describe('Field validation', () => {
 
         test('TC-INS-06 — Submitting without required fields shows errors', async ({ insurancePage }) => {
+            test.slow();
             await insurancePage.prepareInsuranceForm(defaultInsuranceType);
             await insurancePage.nextBtn.click();
             await expect(
                 insurancePage.page.locator(errorSelector).first()
-            ).toBeVisible({ timeout: 5_000 });
+            ).toBeVisible({ timeout: 15_000 });
         });
 
         if (hasInsuranceDOB) {

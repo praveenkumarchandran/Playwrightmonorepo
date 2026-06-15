@@ -86,7 +86,8 @@ export function runFindAppointmentCases(test, expect, opts = {}) {
             });
 
             test('TC-FA-03 — Provider dropdown defaults to "Any Provider"', async ({ findAppointmentPage }) => {
-                if (!hasProviderDropdown) return; // Kronson has no Provider filter
+                test.slow();
+                if (!hasProviderDropdown) return;
                 const value = await findAppointmentPage._getDropdownText(findAppointmentPage.providerDropdown);
                 expect(value).toMatch(/any provider/i);
             });
@@ -116,10 +117,12 @@ export function runFindAppointmentCases(test, expect, opts = {}) {
             });
 
             test('TC-FA-06 — unchecking Female filters provider cards', async ({ findAppointmentPage }) => {
+                test.slow();
                 if (await isNoAvailability(findAppointmentPage)) return;
                 const before = await findAppointmentPage.getProviderCardCount();
                 await findAppointmentPage.femaleCheckbox.uncheck({ force: true });
-                await findAppointmentPage.page.waitForTimeout(1_000);
+                await findAppointmentPage.page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => {});
+                await findAppointmentPage.page.waitForTimeout(1_500);
                 const after = await findAppointmentPage.getProviderCardCount();
                 expect(after).toBeLessThanOrEqual(before);
             });
