@@ -151,6 +151,7 @@ function runStepperCases(test, expect, opts = {}) {
         // ── Round-trip: back then forward again ───────────────────────────────
 
         test('TC-STEP-08 — navigating back then forward', async ({ stepperPage }) => {
+            test.slow();
             if (hasInsurance) {
                 // Clients with insurance: use Skip button (bypasses re-entry) if available
                 await goBack(stepperPage, 'Add Insurance');

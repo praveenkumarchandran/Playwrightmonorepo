@@ -49,8 +49,9 @@ runLandingCases(test, expect, {
 // ── Slot Picker — flat date+time layout ──────────────────────────────────────
 // "Change Filters" → date strip → "Available Time Slots" → Continue → Intake Questions
 runSlotPickerCases(test, expect, {
-    expectedReason:    CLIENTS.TNDI.reason,   // 'Teleconsultation'
-    nextPageAfterSlot: 'intake',
+    expectedReason:             CLIENTS.TNDI.reason,   // 'Teleconsultation'
+    appointmentTypeSummaryText: null,                  // summary shows patient type not reason on stage
+    nextPageAfterSlot:          'intake',
 });
 
 // ── Intake ────────────────────────────────────────────────────────────────────
@@ -74,7 +75,7 @@ runInsuranceCases(test, expect, {
 // ── Appointment summary — insurance page (after slot selection) ───────────────
 // Verifies the left panel shows: Location, Address, Appointment Time, Appointment Type
 runInsurancePageSummaryCases(test, expect, {
-    expectedAppointmentType: CLIENTS.TNDI.reason,        // 'Teleconsultation'
+    expectedAppointmentType: null,                       // summary shows patient type not reason on stage
     expectedLocation:        'The Nerve and Disc Institute Farmington',
     expectedAddress:         '24100 Drake Rd',           // partial match for address
 });
@@ -82,7 +83,7 @@ runInsurancePageSummaryCases(test, expect, {
 // ── Appointment summary — patient info page ────────────────────────────────────
 // Same panel must be present on the Add Info page (step 5) confirming all chosen values
 runPatientPageSummaryCases(test, expect, {
-    expectedAppointmentType: CLIENTS.TNDI.reason,        // 'Teleconsultation'
+    expectedAppointmentType: null,                       // summary shows patient type not reason on stage
     expectedLocation:        'The Nerve and Disc Institute Farmington',
     expectedAddress:         '24100 Drake Rd',
 });

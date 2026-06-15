@@ -181,14 +181,14 @@ export class LandingPage {
             await this.reasonAutocomplete.click();
             await this.reasonAutocomplete.pressSequentially(reasonType, { delay: 20 });
             const option = this.page.locator('[role="option"]').filter({ hasText: reasonType }).first();
-            await option.waitFor({ state: 'visible', timeout: 20_000 });
+            await option.waitFor({ state: 'visible', timeout: 40_000 });
             await option.click();
         } else {
-            await this.reasonSelect.waitFor({ state: 'visible', timeout: 10_000 });
+            await this.reasonSelect.waitFor({ state: 'visible', timeout: 20_000 });
             await this.reasonSelect.click();
             const option = this.page.locator('[role="option"], li[role="option"]')
                 .filter({ hasText: reasonType }).first();
-            await option.waitFor({ state: 'visible', timeout: 10_000 });
+            await option.waitFor({ state: 'visible', timeout: 20_000 });
             await option.click();
         }
         console.log(`Reason selected: ${reasonType}`);

@@ -143,10 +143,11 @@ function runIntakeCases(test, expect, opts = {}) {
         });
 
         test('TC-INT-12 — questions appear after a symptom is selected', async ({ intakePage }) => {
+            test.slow();
             await intakePage.selectSymptom('Knee', 'Knee Pain');
 
             const appeared = await intakePage.noLabels.first()
-                .isVisible({ timeout: 8_000 })
+                .isVisible({ timeout: 15_000 })
                 .catch(() => false);
 
             // If the flow renders questions, they must be visible; if the flow

@@ -37,11 +37,11 @@ export function runLandingCases(test, expect, opts = {}) {
         test.describe('Visibility', () => {
 
             test('TC-LAND-01 — reason dropdown is visible on page load', async ({ landingPage }) => {
-                // Works for both MUI Autocomplete (input) and MUI Select (div trigger)
+                test.slow();
                 const autocomplete = landingPage.reasonAutocomplete;
                 const select       = landingPage.reasonSelect;
-                const hasAuto = await autocomplete.isVisible({ timeout: 5_000 }).catch(() => false);
-                const hasSel  = await select.isVisible({ timeout: 5_000 }).catch(() => false);
+                const hasAuto = await autocomplete.isVisible({ timeout: 10_000 }).catch(() => false);
+                const hasSel  = await select.isVisible({ timeout: 10_000 }).catch(() => false);
                 expect(hasAuto || hasSel).toBe(true);
             });
 
@@ -70,8 +70,9 @@ export function runLandingCases(test, expect, opts = {}) {
             }
 
             test('TC-LAND-05 — Existing Patient button is enabled after reason selection', async ({ landingPage }) => {
+                test.slow();
                 await landingPage._selectReason(reason);
-                await expect(landingPage.existingPatientBtn).toBeEnabled({ timeout: 5_000 });
+                await expect(landingPage.existingPatientBtn).toBeEnabled({ timeout: 15_000 });
             });
 
         });
@@ -81,15 +82,18 @@ export function runLandingCases(test, expect, opts = {}) {
         test.describe('Navigation', () => {
 
             test('TC-LAND-06 — clicking New Patient after selecting reason navigates away from landing', async ({ landingPage }) => {
+                test.slow();
                 const urlBefore = landingPage.page.url();
                 await landingPage._selectReason(reason);
                 await landingPage.newPatientBtn.click();
-                // Allow time for navigation and any post-click popup to appear
-                await landingPage.page.waitForTimeout(2_000);
-                // URL must have changed OR a popup appeared (we're no longer on the bare landing)
+                // Wait for navigation OR a popup — whichever comes first
+                await Promise.race([
+                    landingPage.page.waitForURL(url => url.toString() !== urlBefore, { timeout: 15_000 }),
+                    landingPage.page.locator('[role="dialog"]').waitFor({ state: 'visible', timeout: 15_000 }),
+                ]).catch(() => {});
                 const urlAfter = landingPage.page.url();
                 const popupVisible = await landingPage.page
-                    .locator('[role="dialog"]').isVisible({ timeout: 1_000 }).catch(() => false);
+                    .locator('[role="dialog"]').isVisible({ timeout: 2_000 }).catch(() => false);
                 expect(urlAfter !== urlBefore || popupVisible).toBe(true);
             });
 

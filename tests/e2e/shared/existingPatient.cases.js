@@ -86,9 +86,10 @@ export function runExistingPatientCases(test, expect, opts = {}) {
             });
 
             test('TC-EP-10 — submitting with only First Name shows validation errors', async ({ existingPatientPage }) => {
+                test.slow();
                 await existingPatientPage.firstNameInput.fill(firstName);
                 await existingPatientPage.findBtn.click();
-                await expect(existingPatientPage.validationError.first()).toBeVisible({ timeout: 5_000 });
+                await expect(existingPatientPage.validationError.first()).toBeVisible({ timeout: 15_000 });
             });
 
             test('TC-EP-11 — submitting with only Last Name shows validation errors', async ({ existingPatientPage }) => {

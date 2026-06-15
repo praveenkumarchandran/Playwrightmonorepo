@@ -49,13 +49,23 @@ export function makeNewPatientFixtures(clientKey) {
 
         // ── intakePage — arrives AT the intake page without filling it ───────
         // Runs all steps before intake; platform auto-navigates to intake.
-        intakePage: async ({ page }, use) => {
+        intakePage: async ({ page }, use, testInfo) => {
             if (!flow.includes('intake')) {
                 throw new Error(`Client "${clientKey}" has no intake step.`);
             }
             const intakeIdx = flow.indexOf('intake');
             const preIntakeFlow = flow.slice(0, intakeIdx);
-            const pgs = await runFlow(page, client, preIntakeFlow, preIntakeFlow.at(-1));
+            let pgs;
+            try {
+                pgs = await runFlow(page, client, preIntakeFlow, preIntakeFlow.at(-1));
+            } catch (e) {
+                if (e.message.startsWith('NO_SLOTS_AVAILABLE') || e.message.startsWith('CLIENT_NOT_CONFIGURED')) {
+                    console.log(`[${clientKey}] No available slots in staging — intake tests will be skipped`);
+                    testInfo.skip(true, `[${clientKey}] No available slots in staging — intake tests skipped`);
+                    return;
+                }
+                throw new Error(`[${clientKey}] intakePage fixture failed.\n  Flow: ${preIntakeFlow.join(' → ')}\n  ${e.message}`);
+            }
             await page.waitForLoadState('networkidle', { timeout: 30_000 });
             await use(pgs.intake);
         },
@@ -122,7 +132,11 @@ export function makeNewPatientFixtures(clientKey) {
             } catch (e) {
                 await context.close();
                 if (e.message.startsWith('NO_SLOTS_AVAILABLE') || e.message.startsWith('CLIENT_NOT_CONFIGURED')) {
-                    testInfo.skip(true, `[${clientKey}] No available slots in staging — patient info tests skipped`);
+                    console.log(`[${clientKey}] No available slots in staging — patient info tests will be skipped`);
+                    // testInfo.skip may not be available in worker-scoped fixtures on retry
+                    if (typeof testInfo?.skip === 'function') {
+                        testInfo.skip(true, `[${clientKey}] No available slots in staging — patient info tests skipped`);
+                    }
                     return;
                 }
                 throw new Error(`[${clientKey}] patientPage fixture failed.\n  Flow: ${flow.join(' → ')}\n  ${e.message}`);
