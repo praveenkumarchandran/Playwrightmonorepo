@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8">
+<title>Email Template Samples</title>
+<style>
+  body { margin: 0; padding: 20px; background: #d0d0d0; font-family: Arial, sans-serif; }
+  h2 { text-align: center; color: #333; margin: 40px 0 10px; font-size: 16px; letter-spacing: 1px; text-transform: uppercase; }
+  .label { text-align: center; margin-bottom: 20px; color: #666; font-size: 13px; }
+  .divider { border: none; border-top: 3px dashed #aaa; margin: 60px 0; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<h2>Sample 1 — Classic Red/Green (Current Style)</h2>
+<p class="label">Clean table layout · Color-coded rows · Detailed failure cards</p>
+
+<table width="100%" cellpadding="0" cellspacing="0">
+<tr><td align="center" style="padding:0 12px;">
+<table width="700" cellpadding="0" cellspacing="0"
+       style="background:#fff; border-radius:6px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.15);">
+
+  <tr><td style="background:#b71c1c; padding:22px 28px;">
+    <div style="color:#fff; font-size:19px; font-weight:700; letter-spacing:0.5px;">PLAYWRIGHT E2E TEST REPORT</div>
+    <div style="color:rgba(255,255,255,0.85); font-size:13px; margin-top:6px;">
+      ❌ FAILED &nbsp;|&nbsp; 15 Jun 2026, 3:07 PM &nbsp;|&nbsp;
+      <a href="#" style="color:rgba(255,255,255,0.9);">View on GitHub Actions</a>
+    </div>
+  </td></tr>
+
+  <tr><td style="background:#fafafa; border-bottom:1px solid #e0e0e0; padding:16px 28px;">
+    <table width="100%" cellpadding="0" cellspacing="0"><tr>
+      <td align="center" style="padding:0 14px; border-right:1px solid #e0e0e0;">
+        <div style="font-size:28px; font-weight:700; color:#333;">284</div>
+        <div style="font-size:11px; color:#999; text-transform:uppercase; letter-spacing:0.5px;">Total</div>
+      </td>
+      <td align="center" style="padding:0 14px; border-right:1px solid #e0e0e0;">
+        <div style="font-size:28px; font-weight:700; color:#1b5e20;">261</div>
+        <div style="font-size:11px; color:#999; text-transform:uppercase; letter-spacing:0.5px;">Passed</div>
+      </td>
+      <td align="center" style="padding:0 14px; border-right:1px solid #e0e0e0;">
+        <div style="font-size:28px; font-weight:700; color:#b71c1c;">7</div>
+        <div style="font-size:11px; color:#999; text-transform:uppercase; letter-spacing:0.5px;">Failed</div>
+      </td>
+      <td align="center" style="padding:0 14px; border-right:1px solid #e0e0e0;">
+        <div style="font-size:28px; font-weight:700; color:#555;">16</div>
+        <div style="font-size:11px; color:#999; text-transform:uppercase; letter-spacing:0.5px;">Skipped</div>
+      </td>
+      <td align="center" style="padding:0 14px;">
+        <div style="font-size:28px; font-weight:700; color:#e65100;">0</div>
+        <div style="font-size:11px; color:#999; text-transform:uppercase; letter-spacing:0.5px;">Flaky</div>
+      </td>
+    </tr></table>
+  </td></tr>
+
+  <tr><td style="padding:24px 28px;">
+    <div style="font-size:13px; font-weight:700; color:#333; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px; border-bottom:2px solid #e0e0e0; padding-bottom:6px;">Results by Client</div>
+    <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse; font-size:13px; margin-bottom:24px;">
+      <tr style="background:#eee; border-bottom:2px solid #bbb;">
+        <th style="padding:8px 12px; text-align:left;">Status</th>
+        <th style="padding:8px 12px; text-align:left;">Client</th>
+        <th style="padding:8px 12px; text-align:center;">Total</th>
+        <th style="padding:8px 12px; text-align:center; color:#1b5e20;">Passed</th>
+        <th style="padding:8px 12px; text-align:center; color:#b71c1c;">Failed</th>
+        <th style="padding:8px 12px; text-align:center; color:#555;">Skipped</th>
+      </tr>
+      <tr style="background:#fce4e4; border-bottom:1px solid #e0e0e0;">
+        <td style="padding:9px 12px; font-weight:700; color:#b71c1c;">FAIL</td>
+        <td style="padding:9px 12px; font-family:monospace;">freedman</td>
+        <td style="padding:9px 12px; text-align:center;">38</td>
+        <td style="padding:9px 12px; text-align:center; color:#1b5e20; font-weight:700;">31</td>
+        <td style="padding:9px 12px; text-align:center; color:#b71c1c; font-weight:700;">7</td>
+        <td style="padding:9px 12px; text-align:center; color:#555;">0</td>
+      </tr>
+      <tr style="background:#e8f5e9; border-bottom:1px solid #e0e0e0;">
+        <td style="padding:9px 12px; font-weight:700; color:#1b5e20;">PASS</td>
+        <td style="padding:9px 12px; font-family:monospace;">siny-medical</td>
+        <td style="padding:9px 12px; text-align:center;">42</td>
+        <td style="padding:9px 12px; text-align:center; color:#1b5e20; font-weight:700;">38</td>
+        <td style="padding:9px 12px; text-align:center; color:#333;">0</td>
+        <td style="padding:9px 12px; text-align:center; color:#555;">4</td>
+      </tr>
+      <tr style="background:#e8f5e9; border-bottom:1px solid #e0e0e0;">
+        <td style="padding:9px 12px; font-weight:700; color:#1b5e20;">PASS</td>
+        <td style="padding:9px 12px; font-family:monospace;">clarus</td>
+        <td style="padding:9px 12px; text-align:center;">40</td>
+        <td style="padding:9px 12px; text-align:center; color:#1b5e20; font-weight:700;">36</td>
+        <td style="padding:9px 12px; text-align:center; color:#333;">0</td>
+        <td style="padding:9px 12px; text-align:center; color:#555;">4</td>
+      </tr>
+      <tr style="background:#e8f5e9; border-bottom:1px solid #e0e0e0;">
+        <td style="padding:9px 12px; font-weight:700; color:#1b5e20;">PASS</td>
+        <td style="padding:9px 12px; font-family:monospace;">tndi</td>
+        <td style="padding:9px 12px; text-align:center;">40</td>
+        <td style="padding:9px 12px; text-align:center; color:#1b5e20; font-weight:700;">36</td>
+        <td style="padding:9px 12px; text-align:center; color:#333;">0</td>
+        <td style="padding:9px 12px; text-align:center; color:#555;">4</td>
+      </tr>
+      <tr style="background:#fce4e4; font-weight:700; border-top:2px solid #9e9e9e;">
+        <td style="padding:9px 12px; color:#b71c1c;">FAIL</td>
+        <td style="padding:9px 12px;">TOTAL</td>
+        <td style="padding:9px 12px; text-align:center;">284</td>
+        <td style="padding:9px 12px; text-align:center; color:#1b5e20;">261</td>
+        <td style="padding:9px 12px; text-align:center; color:#b71c1c;">7</td>
+        <td style="padding:9px 12px; text-align:center; color:#555;">16</td>
+      </tr>
+    </table>
+
+    <div style="font-size:13px; font-weight:700; color:#b71c1c; margin-bottom:14px; text-transform:uppercase; letter-spacing:0.5px; border-bottom:2px solid #d32f2f; padding-bottom:6px;">Failure Details (7 failures)</div>
+
+    <div style="border:1px solid #d32f2f; border-left:5px solid #d32f2f; border-radius:4px; margin-bottom:20px; overflow:hidden;">
+      <div style="background:#d32f2f; color:#fff; padding:11px 16px; font-size:13px;">
+        <span style="font-weight:700;">FAILURE 1 OF 7</span> &nbsp;|&nbsp; <span style="font-weight:600;">TC-INS-01</span> &nbsp;|&nbsp; freedman &nbsp;|&nbsp; 32.4 s
+      </div>
+      <div style="padding:16px 18px; font-size:13px; font-family:Arial,sans-serif;">
+        <table style="border-collapse:collapse; width:100%; margin-bottom:12px;">
+          <tr><td style="padding:4px 12px 4px 0; color:#555; font-weight:600; min-width:110px;">Test Name</td><td style="padding:4px 0; color:#222; font-weight:600;">TC-INS-01 — insurance page loads and displays Self-pay option</td></tr>
+          <tr><td style="padding:4px 12px 4px 0; color:#555; font-weight:600;">Error Type</td><td style="padding:4px 0; color:#b71c1c; font-weight:600;">Element Not Visible</td></tr>
+          <tr><td style="padding:4px 12px 4px 0; color:#555; font-weight:600;">File</td><td style="padding:4px 0; color:#222; font-family:monospace; font-size:12px;">e2e/shared/insurance.cases.js : Line 24</td></tr>
+        </table>
+        <div style="background:#fff3f3; border-left:3px solid #d32f2f; padding:8px 10px; font-family:monospace; font-size:12px; color:#333; margin-bottom:10px;">expect(locator).toBeVisible()<br>Locator: getByText('Self-pay')<br>Timeout: 30000ms</div>
+        <div style="background:#fff8e1; border:1px solid #ffe082; border-radius:3px; padding:8px 12px; margin-bottom:8px; font-size:13px; color:#333;"><strong style="color:#e65100;">WHAT FAILED:</strong> The test verified that "Self-pay" is visible on the insurance page. The element was not found within the 30-second timeout.</div>
+        <div style="background:#e8f5e9; border:1px solid #a5d6a7; border-radius:3px; padding:8px 12px; font-size:13px; color:#333;"><strong style="color:#1b5e20;">ROOT CAUSE:</strong> The stage server took longer than 30s to render the insurance page. Intermittent CI slowness — likely to pass on re-run.</div>
+      </div>
+    </div>
+  </td></tr>
+
+  <tr><td style="background:#f5f5f5; border-top:1px solid #e0e0e0; padding:12px 28px; text-align:center; font-size:12px; color:#777;">
+    Automated report · Playwright E2E Test Suite &nbsp;|&nbsp; <a href="#" style="color:#1565c0;">View Full Run on GitHub Actions</a>
+  </td></tr>
+</table>
+</td></tr></table>
+
+<hr class="divider">
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<h2>Sample 2 — Dark Navy Header + Badge Style</h2>
+<p class="label">Dark professional header · Pill-shaped status badges · Compact cards</p>
+
+<table width="100%" cellpadding="0" cellspacing="0">
+<tr><td align="center" style="padding:0 12px;">
+<table width="700" cellpadding="0" cellspacing="0"
+       style="background:#fff; border-radius:8px; overflow:hidden; box-shadow:0 4px 16px rgba(0,0,0,0.18);">
+
+  <tr><td style="background:linear-gradient(135deg,#1a237e 0%,#283593 100%); padding:24px 28px;">
+    <div style="color:#fff; font-size:10px; letter-spacing:2px; text-transform:uppercase; margin-bottom:6px; opacity:0.7;">Setter · Playwright Automation</div>
+    <div style="color:#fff; font-size:20px; font-weight:700;">E2E Test Run Report</div>
+    <div style="margin-top:10px; display:inline-block; background:#c62828; color:#fff; padding:4px 14px; border-radius:20px; font-size:12px; font-weight:700; letter-spacing:0.5px;">
+      ✕ &nbsp;FAILED — 7 tests
+    </div>
+    <div style="color:rgba(255,255,255,0.7); font-size:12px; margin-top:10px;">
+      Branch: <strong style="color:#fff;">dev</strong> &nbsp;·&nbsp; 15 Jun 2026, 3:07 PM IST &nbsp;·&nbsp;
+      <a href="#" style="color:#90caf9;">View on GitHub →</a>
+    </div>
+  </td></tr>
+
+  <!-- Metric blocks -->
+  <tr><td style="padding:0;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="border-bottom:1px solid #e8e8e8;">
+      <tr>
+        <td align="center" style="padding:18px 0; border-right:1px solid #e8e8e8;">
+          <div style="font-size:30px; font-weight:800; color:#1a237e;">284</div>
+          <div style="font-size:10px; color:#aaa; text-transform:uppercase; letter-spacing:1px; margin-top:2px;">Total</div>
+        </td>
+        <td align="center" style="padding:18px 0; border-right:1px solid #e8e8e8;">
+          <div style="font-size:30px; font-weight:800; color:#2e7d32;">261</div>
+          <div style="font-size:10px; color:#aaa; text-transform:uppercase; letter-spacing:1px; margin-top:2px;">Passed</div>
+        </td>
+        <td align="center" style="padding:18px 0; border-right:1px solid #e8e8e8;">
+          <div style="font-size:30px; font-weight:800; color:#c62828;">7</div>
+          <div style="font-size:10px; color:#aaa; text-transform:uppercase; letter-spacing:1px; margin-top:2px;">Failed</div>
+        </td>
+        <td align="center" style="padding:18px 0; border-right:1px solid #e8e8e8;">
+          <div style="font-size:30px; font-weight:800; color:#757575;">16</div>
+          <div style="font-size:10px; color:#aaa; text-transform:uppercase; letter-spacing:1px; margin-top:2px;">Skipped</div>
+        </td>
+        <td align="center" style="padding:18px 0;">
+          <div style="font-size:30px; font-weight:800; color:#ef6c00;">0</div>
+          <div style="font-size:10px; color:#aaa; text-transform:uppercase; letter-spacing:1px; margin-top:2px;">Flaky</div>
+        </td>
+      </tr>
+    </table>
+  </td></tr>
+
+  <tr><td style="padding:24px 28px;">
+
+    <div style="font-size:11px; font-weight:700; color:#9e9e9e; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:12px;">Client Results</div>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse; font-size:13px; margin-bottom:28px; border:1px solid #e8e8e8; border-radius:6px; overflow:hidden;">
+      <tr style="background:#f5f6ff;">
+        <th style="padding:9px 14px; text-align:left; font-size:11px; color:#9e9e9e; text-transform:uppercase; letter-spacing:0.5px; font-weight:700; border-bottom:1px solid #e8e8e8;">Client</th>
+        <th style="padding:9px 14px; text-align:center; font-size:11px; color:#9e9e9e; text-transform:uppercase; letter-spacing:0.5px; font-weight:700; border-bottom:1px solid #e8e8e8;">Status</th>
+        <th style="padding:9px 14px; text-align:center; font-size:11px; color:#2e7d32; text-transform:uppercase; letter-spacing:0.5px; font-weight:700; border-bottom:1px solid #e8e8e8;">✓ Pass</th>
+        <th style="padding:9px 14px; text-align:center; font-size:11px; color:#c62828; text-transform:uppercase; letter-spacing:0.5px; font-weight:700; border-bottom:1px solid #e8e8e8;">✕ Fail</th>
+        <th style="padding:9px 14px; text-align:center; font-size:11px; color:#757575; text-transform:uppercase; letter-spacing:0.5px; font-weight:700; border-bottom:1px solid #e8e8e8;">— Skip</th>
+      </tr>
+      <tr style="border-bottom:1px solid #fde8e8; background:#fff8f8;">
+        <td style="padding:10px 14px; font-family:monospace; font-weight:600; color:#333;">freedman</td>
+        <td style="padding:10px 14px; text-align:center;"><span style="background:#c62828; color:#fff; padding:3px 10px; border-radius:12px; font-size:11px; font-weight:700; letter-spacing:0.5px;">FAIL</span></td>
+        <td style="padding:10px 14px; text-align:center; color:#2e7d32; font-weight:700;">31</td>
+        <td style="padding:10px 14px; text-align:center; color:#c62828; font-weight:700;">7</td>
+        <td style="padding:10px 14px; text-align:center; color:#757575;">0</td>
+      </tr>
+      <tr style="border-bottom:1px solid #eee;">
+        <td style="padding:10px 14px; font-family:monospace; font-weight:600; color:#333;">siny-medical</td>
+        <td style="padding:10px 14px; text-align:center;"><span style="background:#2e7d32; color:#fff; padding:3px 10px; border-radius:12px; font-size:11px; font-weight:700; letter-spacing:0.5px;">PASS</span></td>
+        <td style="padding:10px 14px; text-align:center; color:#2e7d32; font-weight:700;">38</td>
+        <td style="padding:10px 14px; text-align:center; color:#757575;">0</td>
+        <td style="padding:10px 14px; text-align:center; color:#757575;">4</td>
+      </tr>
+      <tr style="border-bottom:1px solid #eee;">
+        <td style="padding:10px 14px; font-family:monospace; font-weight:600; color:#333;">clarus</td>
+        <td style="padding:10px 14px; text-align:center;"><span style="background:#2e7d32; color:#fff; padding:3px 10px; border-radius:12px; font-size:11px; font-weight:700; letter-spacing:0.5px;">PASS</span></td>
+        <td style="padding:10px 14px; text-align:center; color:#2e7d32; font-weight:700;">36</td>
+        <td style="padding:10px 14px; text-align:center; color:#757575;">0</td>
+        <td style="padding:10px 14px; text-align:center; color:#757575;">4</td>
+      </tr>
+      <tr style="border-bottom:1px solid #eee;">
+        <td style="padding:10px 14px; font-family:monospace; font-weight:600; color:#333;">tndi</td>
+        <td style="padding:10px 14px; text-align:center;"><span style="background:#2e7d32; color:#fff; padding:3px 10px; border-radius:12px; font-size:11px; font-weight:700; letter-spacing:0.5px;">PASS</span></td>
+        <td style="padding:10px 14px; text-align:center; color:#2e7d32; font-weight:700;">36</td>
+        <td style="padding:10px 14px; text-align:center; color:#757575;">0</td>
+        <td style="padding:10px 14px; text-align:center; color:#757575;">4</td>
+      </tr>
+    </table>
+
+    <div style="font-size:11px; font-weight:700; color:#c62828; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:14px; border-bottom:1px solid #f5c6c6; padding-bottom:8px;">
+      Failure Details &nbsp;<span style="background:#c62828; color:#fff; padding:2px 8px; border-radius:10px; font-size:11px;">7</span>
+    </div>
+
+    <!-- Compact failure card -->
+    <div style="border:1px solid #e8e8e8; border-radius:6px; margin-bottom:14px; overflow:hidden; font-size:13px;">
+      <div style="background:#1a237e; color:#fff; padding:10px 16px; display:flex; align-items:center;">
+        <span style="background:#c62828; color:#fff; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:700; margin-right:10px;">TC-INS-01</span>
+        <span style="font-weight:600; flex:1;">insurance page loads and displays Self-pay option</span>
+        <span style="opacity:0.7; font-size:12px; margin-left:10px;">freedman &nbsp;·&nbsp; 32.4 s</span>
+      </div>
+      <div style="padding:14px 16px; background:#fff;">
+        <table style="border-collapse:collapse; width:100%; margin-bottom:10px;">
+          <tr>
+            <td style="padding:3px 14px 3px 0; color:#9e9e9e; font-size:12px; white-space:nowrap; min-width:100px;">Error Type</td>
+            <td style="padding:3px 0; color:#c62828; font-weight:700; font-size:12px;">Element Not Visible</td>
+            <td style="padding:3px 14px 3px 20px; color:#9e9e9e; font-size:12px; white-space:nowrap;">File</td>
+            <td style="padding:3px 0; font-family:monospace; font-size:11px; color:#555;">insurance.cases.js : 24</td>
+          </tr>
+        </table>
+        <div style="background:#f8f9ff; border:1px solid #e3e6f0; border-left:3px solid #1a237e; border-radius:3px; padding:8px 12px; font-family:monospace; font-size:11px; color:#333; margin-bottom:10px;">
+          expect(locator).toBeVisible()<br>Locator: getByText('Self-pay') &nbsp;·&nbsp; Timeout: 30000ms
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          <div style="background:#fffde7; border:1px solid #ffe082; border-radius:4px; padding:8px 10px; font-size:12px;">
+            <div style="color:#f57f17; font-weight:700; margin-bottom:4px; font-size:11px; text-transform:uppercase; letter-spacing:0.5px;">What Failed</div>
+            <div style="color:#555; line-height:1.5;">"Self-pay" element was not found within the 30s timeout on the insurance page.</div>
+          </div>
+          <div style="background:#f1f8e9; border:1px solid #aed581; border-radius:4px; padding:8px 10px; font-size:12px;">
+            <div style="color:#33691e; font-weight:700; margin-bottom:4px; font-size:11px; text-transform:uppercase; letter-spacing:0.5px;">Root Cause</div>
+            <div style="color:#555; line-height:1.5;">Stage server slowness under CI load. Likely to pass on re-run.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="border:1px solid #e8e8e8; border-radius:6px; margin-bottom:14px; overflow:hidden; font-size:13px;">
+      <div style="background:#1a237e; color:#fff; padding:10px 16px;">
+        <span style="background:#c62828; color:#fff; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:700; margin-right:10px;">TC-INS-02</span>
+        <span style="font-weight:600;">Continue/Next is enabled after Self-pay selected</span>
+        <span style="opacity:0.7; font-size:12px; margin-left:10px;">freedman &nbsp;·&nbsp; 45.1 s</span>
+      </div>
+      <div style="padding:14px 16px; background:#fff;">
+        <table style="border-collapse:collapse; width:100%; margin-bottom:10px;">
+          <tr>
+            <td style="padding:3px 14px 3px 0; color:#9e9e9e; font-size:12px; min-width:100px;">Error Type</td>
+            <td style="padding:3px 0; color:#c62828; font-weight:700; font-size:12px;">Element Not Enabled</td>
+            <td style="padding:3px 14px 3px 20px; color:#9e9e9e; font-size:12px;">File</td>
+            <td style="padding:3px 0; font-family:monospace; font-size:11px; color:#555;">insurance.cases.js : 31</td>
+          </tr>
+        </table>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          <div style="background:#fffde7; border:1px solid #ffe082; border-radius:4px; padding:8px 10px; font-size:12px;">
+            <div style="color:#f57f17; font-weight:700; margin-bottom:4px; font-size:11px; text-transform:uppercase;">What Failed</div>
+            <div style="color:#555; line-height:1.5;">Next button was found but stayed disabled through the entire timeout.</div>
+          </div>
+          <div style="background:#f1f8e9; border:1px solid #aed581; border-radius:4px; padding:8px 10px; font-size:12px;">
+            <div style="color:#33691e; font-weight:700; margin-bottom:4px; font-size:11px; text-transform:uppercase;">Root Cause</div>
+            <div style="color:#555; line-height:1.5;">Stage API that enables Next button after Self-pay selection did not respond in time.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </td></tr>
+
+  <tr><td style="background:#1a237e; padding:14px 28px; text-align:center;">
+    <div style="font-size:12px; color:rgba(255,255,255,0.6);">
+      Playwright E2E · Setter Medical Platform &nbsp;|&nbsp;
+      <a href="#" style="color:#90caf9; text-decoration:none;">View Full Run on GitHub Actions →</a>
+    </div>
+  </td></tr>
+</table>
+</td></tr></table>
+
+<hr class="divider">
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<h2>Sample 3 — Clean Minimal (Light Border Cards)</h2>
+<p class="label">White/grey palette · No heavy colors · Subtle borders · Easy to read in any email client</p>
+
+<table width="100%" cellpadding="0" cellspacing="0">
+<tr><td align="center" style="padding:0 12px;">
+<table width="700" cellpadding="0" cellspacing="0"
+       style="background:#fff; border:1px solid #ddd; border-radius:4px; overflow:hidden;">
+
+  <!-- Thin top accent bar -->
+  <tr><td style="background:#c62828; height:5px; padding:0;"></td></tr>
+
+  <tr><td style="padding:24px 28px; border-bottom:1px solid #eeeeee;">
+    <div style="font-size:16px; font-weight:700; color:#222; margin-bottom:6px;">Playwright E2E Test Report</div>
+    <div style="font-size:12px; color:#888;">
+      <span style="background:#fce4e4; color:#c62828; padding:2px 8px; border-radius:3px; font-weight:700; margin-right:8px;">✕ FAILED</span>
+      Branch: dev &nbsp;·&nbsp; 15 Jun 2026, 3:07 PM &nbsp;·&nbsp;
+      <a href="#" style="color:#1565c0;">GitHub Actions Run</a>
+    </div>
+  </td></tr>
+
+  <!-- Inline summary -->
+  <tr><td style="padding:14px 28px; background:#f9f9f9; border-bottom:1px solid #eee;">
+    <table cellpadding="0" cellspacing="0"><tr>
+      <td style="padding-right:28px; font-size:13px; color:#555;">Total: <strong style="color:#222;">284</strong></td>
+      <td style="padding-right:28px; font-size:13px; color:#555;">Passed: <strong style="color:#2e7d32;">261</strong></td>
+      <td style="padding-right:28px; font-size:13px; color:#555;">Failed: <strong style="color:#c62828;">7</strong></td>
+      <td style="padding-right:28px; font-size:13px; color:#555;">Skipped: <strong style="color:#757575;">16</strong></td>
+      <td style="font-size:13px; color:#555;">Flaky: <strong style="color:#e65100;">0</strong></td>
+    </tr></table>
+  </td></tr>
+
+  <tr><td style="padding:24px 28px;">
+
+    <div style="font-size:12px; font-weight:700; color:#888; text-transform:uppercase; letter-spacing:1px; margin-bottom:10px;">Client Summary</div>
+    <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse; font-size:13px; margin-bottom:28px;">
+      <tr style="border-bottom:1px solid #eee; background:#f9f9f9;">
+        <th style="padding:7px 12px; text-align:left; color:#888; font-weight:600; font-size:12px;">Client</th>
+        <th style="padding:7px 12px; text-align:center; color:#888; font-weight:600; font-size:12px;">Pass</th>
+        <th style="padding:7px 12px; text-align:center; color:#888; font-weight:600; font-size:12px;">Fail</th>
+        <th style="padding:7px 12px; text-align:center; color:#888; font-weight:600; font-size:12px;">Skip</th>
+        <th style="padding:7px 12px; text-align:center; color:#888; font-weight:600; font-size:12px;">Status</th>
+      </tr>
+      <tr style="border-bottom:1px solid #eee;">
+        <td style="padding:8px 12px; font-family:monospace; color:#333;">freedman</td>
+        <td style="padding:8px 12px; text-align:center; color:#2e7d32;">31</td>
+        <td style="padding:8px 12px; text-align:center; color:#c62828; font-weight:700;">7</td>
+        <td style="padding:8px 12px; text-align:center; color:#888;">0</td>
+        <td style="padding:8px 12px; text-align:center;"><span style="color:#c62828; font-weight:700;">✕ FAIL</span></td>
+      </tr>
+      <tr style="border-bottom:1px solid #eee;">
+        <td style="padding:8px 12px; font-family:monospace; color:#333;">siny-medical</td>
+        <td style="padding:8px 12px; text-align:center; color:#2e7d32;">38</td>
+        <td style="padding:8px 12px; text-align:center; color:#888;">0</td>
+        <td style="padding:8px 12px; text-align:center; color:#888;">4</td>
+        <td style="padding:8px 12px; text-align:center;"><span style="color:#2e7d32; font-weight:700;">✓ PASS</span></td>
+      </tr>
+      <tr style="border-bottom:1px solid #eee;">
+        <td style="padding:8px 12px; font-family:monospace; color:#333;">clarus</td>
+        <td style="padding:8px 12px; text-align:center; color:#2e7d32;">36</td>
+        <td style="padding:8px 12px; text-align:center; color:#888;">0</td>
+        <td style="padding:8px 12px; text-align:center; color:#888;">4</td>
+        <td style="padding:8px 12px; text-align:center;"><span style="color:#2e7d32; font-weight:700;">✓ PASS</span></td>
+      </tr>
+      <tr style="border-bottom:1px solid #eee;">
+        <td style="padding:8px 12px; font-family:monospace; color:#333;">tndi</td>
+        <td style="padding:8px 12px; text-align:center; color:#2e7d32;">36</td>
+        <td style="padding:8px 12px; text-align:center; color:#888;">0</td>
+        <td style="padding:8px 12px; text-align:center; color:#888;">4</td>
+        <td style="padding:8px 12px; text-align:center;"><span style="color:#2e7d32; font-weight:700;">✓ PASS</span></td>
+      </tr>
+    </table>
+
+    <div style="font-size:12px; font-weight:700; color:#888; text-transform:uppercase; letter-spacing:1px; margin-bottom:12px;">Failed Tests (7)</div>
+
+    <!-- Minimal failure row style -->
+    <div style="border:1px solid #eee; border-left:3px solid #c62828; border-radius:3px; padding:12px 16px; margin-bottom:10px; font-size:13px; font-family:Arial,sans-serif;">
+      <div style="margin-bottom:6px;">
+        <span style="font-family:monospace; background:#f5f5f5; padding:2px 6px; border-radius:3px; font-size:12px; color:#c62828; font-weight:700;">TC-INS-01</span>
+        &nbsp;
+        <span style="color:#222; font-weight:600;">insurance page loads and displays Self-pay option</span>
+        &nbsp;
+        <span style="color:#aaa; font-size:12px;">freedman · 32.4 s · insurance.cases.js:24</span>
+      </div>
+      <div style="color:#888; font-size:12px; margin-bottom:6px;">
+        <span style="color:#c62828; font-weight:600;">Error:</span> Element Not Visible — getByText('Self-pay') not found within 30s
+      </div>
+      <div style="font-size:12px; color:#555; line-height:1.5;">
+        <span style="color:#e65100; font-weight:600;">Why:</span> Stage server took &gt;30s to render the insurance page. Intermittent CI slowness — retry likely to pass.
+      </div>
+    </div>
+
+    <div style="border:1px solid #eee; border-left:3px solid #c62828; border-radius:3px; padding:12px 16px; margin-bottom:10px; font-size:13px; font-family:Arial,sans-serif;">
+      <div style="margin-bottom:6px;">
+        <span style="font-family:monospace; background:#f5f5f5; padding:2px 6px; border-radius:3px; font-size:12px; color:#c62828; font-weight:700;">TC-INS-02</span>
+        &nbsp;
+        <span style="color:#222; font-weight:600;">Continue/Next is enabled after Self-pay selected</span>
+        &nbsp;
+        <span style="color:#aaa; font-size:12px;">freedman · 45.1 s · insurance.cases.js:31</span>
+      </div>
+      <div style="color:#888; font-size:12px; margin-bottom:6px;">
+        <span style="color:#c62828; font-weight:600;">Error:</span> Element Not Enabled — Next button stayed disabled through timeout
+      </div>
+      <div style="font-size:12px; color:#555; line-height:1.5;">
+        <span style="color:#e65100; font-weight:600;">Why:</span> Stage API that enables Next after Self-pay selection did not respond in time under CI load.
+      </div>
+    </div>
+
+    <div style="text-align:center; color:#aaa; font-size:12px; padding:8px 0;">+ 5 more failures in same format</div>
+
+  </td></tr>
+
+  <tr><td style="padding:12px 28px; border-top:1px solid #eee; text-align:center; font-size:11px; color:#aaa;">
+    Playwright E2E · Setter Medical &nbsp;|&nbsp;
+    <a href="#" style="color:#1565c0; text-decoration:none;">View Full Run on GitHub →</a>
+  </td></tr>
+</table>
+</td></tr></table>
+
+<br><br>
+
+</body>
+</html>

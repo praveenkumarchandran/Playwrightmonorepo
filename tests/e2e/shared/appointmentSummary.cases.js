@@ -127,6 +127,10 @@ export function runPatientPageSummaryCases(test, expect, opts = {}) {
 
     test.describe('Appointment summary panel — patient info page', () => {
 
+        test.beforeEach(async ({ patientPage }, testInfo) => {
+            if (!patientPage) testInfo.skip(true, 'No slots available — patient info not reachable');
+        });
+
         test('TC-APPT-PI-01 — "Your Appointment" heading is visible', async ({ patientPage }) => {
             await expect(patientPage.summaryHeading).toBeVisible({ timeout: 10_000 });
         });

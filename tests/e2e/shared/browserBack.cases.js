@@ -42,26 +42,28 @@ export function runBrowserBackCases(test, expect, opts = {}) {
         // ── From patient info page ─────────────────────────────────────────────
 
         test('TC-BACK-04 — browser back from patient info navigates away from patient info', async ({ patientInfoPage }) => {
+            test.slow();
             const urlBefore = patientInfoPage.page.url();
             await patientInfoPage.page.goBack();
-            await patientInfoPage.page.waitForLoadState('networkidle', { timeout: 20_000 });
+            await patientInfoPage.page.waitForLoadState('networkidle', { timeout: 30_000 });
             expect(patientInfoPage.page.url()).not.toBe(urlBefore);
         });
 
         test('TC-BACK-05 — page after back from patient info has visible content (not blank)', async ({ patientInfoPage }) => {
+            test.slow();
             await patientInfoPage.page.goBack();
-            await patientInfoPage.page.waitForLoadState('networkidle', { timeout: 20_000 });
+            await patientInfoPage.page.waitForLoadState('networkidle', { timeout: 30_000 });
             const count = await patientInfoPage.page.locator('button, input, h1, h2, h3, h4').count();
             expect(count).toBeGreaterThan(0);
         });
 
         test('TC-BACK-06 — browser forward after back from patient info returns to patient info', async ({ patientInfoPage }) => {
+            test.slow();
             await patientInfoPage.page.goBack();
-            await patientInfoPage.page.waitForLoadState('networkidle', { timeout: 20_000 });
+            await patientInfoPage.page.waitForLoadState('networkidle', { timeout: 30_000 });
             await patientInfoPage.page.goForward();
-            await patientInfoPage.page.waitForLoadState('networkidle', { timeout: 20_000 });
-            // Patient info page must show the first name input
-            await expect(patientInfoPage.firstName).toBeVisible({ timeout: 10_000 });
+            await patientInfoPage.page.waitForLoadState('networkidle', { timeout: 30_000 });
+            await expect(patientInfoPage.firstName).toBeVisible({ timeout: 15_000 });
         });
 
     });

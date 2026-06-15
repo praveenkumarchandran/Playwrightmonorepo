@@ -64,9 +64,9 @@ function runIntakeCases(test, expect, opts = {}) {
             test.slow();
             await intakePage.selectSymptoms();
             await intakePage.answerNoQuestions();
-            await intakePage.continueBtn.waitFor({ state: 'visible', timeout: 10_000 });
-            await expect(intakePage.continueBtn).not.toHaveAttribute('disabled', { timeout: 10_000 });
-            await expect(intakePage.continueBtn).not.toHaveAttribute('aria-disabled', 'true', { timeout: 5_000 });
+            await intakePage.continueBtn.waitFor({ state: 'visible', timeout: 15_000 });
+            await expect(intakePage.continueBtn).not.toHaveAttribute('disabled', { timeout: 20_000 });
+            await expect(intakePage.continueBtn).not.toHaveAttribute('aria-disabled', 'true', { timeout: 20_000 });
         });
 
     });

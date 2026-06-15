@@ -39,10 +39,14 @@ function runPatientInfoCases(test, expect, opts = {}) {
         errorSelector = '[class*="Mui-error"], [aria-invalid="true"]',
     } = opts;
 
+    test.describe('Patient Info Page', () => {
+
+    // Skip all tests in this describe when patientPage is null (no slots / network error)
+    test.beforeEach(async ({ patientPage }, testInfo) => {
+        if (patientPage === null) testInfo.skip(true, 'No slots available — patient info tests skipped');
+    });
+
     // ── 1. VALIDATION ─────────────────────────────────────────────────────────
-    // Run FIRST — worker-scoped patientPage has an empty form at this point.
-    // We verify the form does NOT navigate away when submitted incomplete/invalid,
-    // rather than relying on a specific CSS error class (varies per client).
 
     test.describe('Form validation', () => {
 
@@ -407,6 +411,8 @@ function runPatientInfoCases(test, expect, opts = {}) {
         }
 
     });
+
+    }); // end Patient Info Page describe
 }
 
 export { runPatientInfoCases };
