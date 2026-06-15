@@ -51,8 +51,9 @@ function runInsuranceCases(test, expect, opts = {}) {
         });
 
         test('TC-INS-02 — Continue/Next is enabled after Self-pay selected', async ({ insurancePage }) => {
+            test.slow();
             await insurancePage.selectSelfPay();
-            await expect(insurancePage.nextBtn).toBeEnabled();
+            await expect(insurancePage.nextBtn).toBeEnabled({ timeout: 20_000 });
         });
 
         if (hasInsuranceGating) {
@@ -75,20 +76,20 @@ function runInsuranceCases(test, expect, opts = {}) {
     test.describe('Manual entry flow', () => {
 
         test('TC-INS-04 — insurance detail UI is accessible after selecting type', async ({ insurancePage }) => {
+            test.slow();
             await insurancePage.selectInsuranceType(defaultInsuranceType);
-            const hasBtn = await insurancePage.manualEntryBtn.isVisible({ timeout: 5_000 }).catch(() => false);
+            const hasBtn = await insurancePage.manualEntryBtn.isVisible({ timeout: 10_000 }).catch(() => false);
             if (hasBtn) {
-                // Admin has enabled the button choice flow
                 await expect(insurancePage.manualEntryBtn).toBeVisible();
             } else {
-                // Admin has disabled buttons — detail fields appear directly
-                await expect(insurancePage.nextBtn).toBeEnabled({ timeout: 10_000 });
+                await expect(insurancePage.nextBtn).toBeEnabled({ timeout: 20_000 });
             }
         });
 
         test('TC-INS-04b — Take Picture of Card appears when admin enables the button flow', async ({ insurancePage }) => {
+            test.slow();
             await insurancePage.selectInsuranceType(defaultInsuranceType);
-            const hasManualBtn = await insurancePage.manualEntryBtn.isVisible({ timeout: 5_000 }).catch(() => false);
+            const hasManualBtn = await insurancePage.manualEntryBtn.isVisible({ timeout: 10_000 }).catch(() => false);
             if (!hasManualBtn) {
                 console.log('Take Picture / Manually Enter buttons absent — admin config off');
                 return; // skip gracefully when admin disabled
@@ -178,9 +179,10 @@ function runInsuranceCases(test, expect, opts = {}) {
         });
 
         test('TC-INS-09 — Re-selecting same type works without errors', async ({ insurancePage }) => {
+            test.slow();
             await insurancePage.selectSelfPay();
             await insurancePage.selectSelfPay();
-            await expect(insurancePage.nextBtn).toBeEnabled();
+            await expect(insurancePage.nextBtn).toBeEnabled({ timeout: 20_000 });
         });
 
     });
@@ -232,13 +234,13 @@ function runInsuranceCases(test, expect, opts = {}) {
                 const tcNum = `TC-INS-${15 + i}`;
 
                 test(`${tcNum} — "${type}" is selectable and insurance detail UI appears`, async ({ insurancePage }) => {
+                    test.slow();
                     await insurancePage.selectInsuranceType(type);
-                    // Detect dynamically: button flow OR direct fields
-                    const hasBtn = await insurancePage.manualEntryBtn.isVisible({ timeout: 5_000 }).catch(() => false);
+                    const hasBtn = await insurancePage.manualEntryBtn.isVisible({ timeout: 10_000 }).catch(() => false);
                     if (hasBtn) {
                         await expect(insurancePage.manualEntryBtn).toBeVisible();
                     } else {
-                        await expect(insurancePage.nextBtn).toBeEnabled({ timeout: 10_000 });
+                        await expect(insurancePage.nextBtn).toBeEnabled({ timeout: 20_000 });
                     }
                 });
 

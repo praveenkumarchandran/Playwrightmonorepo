@@ -204,7 +204,7 @@ for (const file of resultFiles) {
                     file:      loc.file   ? loc.file.replace(/\\/g, '/') : '',
                     line:      loc.line   || 0,
                     column:    loc.column || 0,
-                    errorMsg,
+                    errorMsg:  errMsg,
                     errorType: classifyError(errMsg),
                     locator:   extractLocator(errMsg),
                     url:       extractUrl(errMsg),
@@ -236,270 +236,367 @@ const fmt = ms => ms >= 60_000
 
 // ── Build HTML ────────────────────────────────────────────────────────────────
 
-const overallStatus = totalFailed > 0 ? 'FAILED' : 'ALL TESTS PASSED';
-const headerBg      = totalFailed > 0 ? '#b71c1c' : '#1b5e20';
-const totalTests    = totalPassed + totalFailed + totalSkipped;
+const totalTests  = totalPassed + totalFailed + totalSkipped;
+const passRate    = totalTests > 0 ? Math.round((totalPassed / totalTests) * 100) : 0;
+const hasFailed   = totalFailed > 0;
 
-// Summary table rows
-const summaryRows = clientRows
+// ── Colours ───────────────────────────────────────────────────────────────────
+const C = {
+    navy:       '#0d2137',
+    navyLight:  '#1a3a5c',
+    red:        '#c62828',
+    redLight:   '#fce4e4',
+    green:      '#2e7d32',
+    greenLight: '#e8f5e9',
+    amber:      '#e65100',
+    amberLight: '#fff8e1',
+    grey:       '#546e7a',
+    border:     '#e2e8f0',
+    bgPage:     '#edf2f7',
+    bgCard:     '#ffffff',
+    textPrimary:'#1a202c',
+    textMuted:  '#718096',
+};
+
+// ── Client rows ───────────────────────────────────────────────────────────────
+const clientRowsHtml = clientRows
     .sort((a, b) => b.failed - a.failed)
-    .map(r => {
-        const status    = r.failed > 0 ? 'FAIL' : 'PASS';
-        const statusBg  = r.failed > 0 ? '#fce4e4' : '#e8f5e9';
-        const statusClr = r.failed > 0 ? '#b71c1c' : '#1b5e20';
-        const failedClr = r.failed > 0 ? '#b71c1c' : '#333';
+    .map((r, idx) => {
+        const fail      = r.failed > 0;
+        const rowBg     = idx % 2 === 0 ? '#ffffff' : '#f8fafc';
+        const badge     = fail
+            ? `<span style="display:inline-block;background:${C.red};color:#fff;
+                            padding:3px 10px;border-radius:20px;font-size:11px;
+                            font-weight:700;letter-spacing:0.5px;">&#10005; FAIL</span>`
+            : `<span style="display:inline-block;background:${C.green};color:#fff;
+                            padding:3px 10px;border-radius:20px;font-size:11px;
+                            font-weight:700;letter-spacing:0.5px;">&#10003; PASS</span>`;
         return `
-        <tr style="background:${statusBg}; border-bottom:1px solid #e0e0e0;">
-          <td style="padding:10px 14px; font-weight:600; color:${statusClr};">${status}</td>
-          <td style="padding:10px 14px; font-family:monospace;">${esc(r.client)}</td>
-          <td style="padding:10px 14px; text-align:center;">${r.passed + r.failed + r.skipped}</td>
-          <td style="padding:10px 14px; text-align:center; color:#1b5e20; font-weight:600;">${r.passed}</td>
-          <td style="padding:10px 14px; text-align:center; color:${failedClr}; font-weight:600;">${r.failed}</td>
-          <td style="padding:10px 14px; text-align:center; color:#555;">${r.skipped}</td>
-          <td style="padding:10px 14px; text-align:center; color:#777;">${r.flaky > 0 ? r.flaky : '-'}</td>
+        <tr style="background:${rowBg}; border-bottom:1px solid ${C.border};">
+          <td style="padding:11px 16px; font-family:monospace; font-weight:600;
+                     color:${C.textPrimary}; font-size:13px;">${esc(r.client)}</td>
+          <td style="padding:11px 16px; text-align:center;">${badge}</td>
+          <td style="padding:11px 16px; text-align:center; color:${C.textPrimary};
+                     font-size:13px;">${r.passed + r.failed + r.skipped}</td>
+          <td style="padding:11px 16px; text-align:center; color:${C.green};
+                     font-weight:700; font-size:13px;">${r.passed}</td>
+          <td style="padding:11px 16px; text-align:center; font-weight:700; font-size:13px;
+                     color:${fail ? C.red : C.textMuted};">${r.failed}</td>
+          <td style="padding:11px 16px; text-align:center; color:${C.textMuted};
+                     font-size:13px;">${r.skipped}</td>
+          <td style="padding:11px 16px; text-align:center; color:${C.textMuted};
+                     font-size:13px;">${r.flaky > 0 ? r.flaky : '—'}</td>
         </tr>`;
     }).join('');
 
-// Total row
-const totalBg  = totalFailed > 0 ? '#fce4e4' : '#e8f5e9';
-const totalClr = totalFailed > 0 ? '#b71c1c' : '#1b5e20';
-const summaryTotals = `
-    <tr style="background:${totalBg}; font-weight:700; border-top:2px solid #9e9e9e;">
-      <td style="padding:10px 14px; color:${totalClr};">${totalFailed > 0 ? 'FAIL' : 'PASS'}</td>
-      <td style="padding:10px 14px;">TOTAL</td>
-      <td style="padding:10px 14px; text-align:center;">${totalTests}</td>
-      <td style="padding:10px 14px; text-align:center; color:#1b5e20;">${totalPassed}</td>
-      <td style="padding:10px 14px; text-align:center; color:${totalClr};">${totalFailed}</td>
-      <td style="padding:10px 14px; text-align:center; color:#555;">${totalSkipped}</td>
-      <td style="padding:10px 14px; text-align:center; color:#777;">${totalFlaky > 0 ? totalFlaky : '-'}</td>
-    </tr>`;
-
-// Failure detail cards
-const failureCards = failures.map((f, i) => {
-    const shortFile = f.file ? f.file.split('/').slice(-3).join('/') : '';
-    const lineRef   = f.file && f.line ? `${shortFile}  :  Line ${f.line}` : 'Not available';
-
+// ── Failure cards ─────────────────────────────────────────────────────────────
+const failureCardsHtml = failures.map((f, i) => {
+    const shortFile  = f.file ? f.file.split('/').slice(-3).join('/') : '';
     const errorLines = f.errorMsg
         ? f.errorMsg.split('\n').slice(0, 6).map(esc).join('<br>')
         : 'No error message captured';
-
-    const locatorRow = f.locator
-        ? `<tr><td style="${labelStyle}">Locator</td><td style="${valStyle} font-family:monospace;">${esc(f.locator)}</td></tr>`
-        : '';
-
-    const urlRow = f.url
-        ? `<tr><td style="${labelStyle}">Page URL</td><td style="${valStyle} font-family:monospace; word-break:break-all;">${esc(f.url)}</td></tr>`
-        : '';
-
-    const flowRow = f.flow
-        ? `<tr><td style="${labelStyle}">Booking Flow</td><td style="${valStyle} font-family:monospace;">${esc(f.flow)}</td></tr>`
-        : '';
-
-    const retryRow = f.retries > 0
-        ? `<tr><td style="${labelStyle}">Retries</td><td style="${valStyle}">Failed on all ${f.retries + 1} attempts</td></tr>`
-        : `<tr><td style="${labelStyle}">Retries</td><td style="${valStyle}">No retry — failed on first attempt</td></tr>`;
+    const locatorHtml = f.locator
+        ? `<tr>
+             <td style="padding:4px 14px 4px 0;color:${C.textMuted};font-size:12px;white-space:nowrap;min-width:90px;">Locator</td>
+             <td style="padding:4px 0;font-family:monospace;font-size:12px;color:${C.textPrimary};">${esc(f.locator)}</td>
+           </tr>` : '';
+    const urlHtml = f.url
+        ? `<tr>
+             <td style="padding:4px 14px 4px 0;color:${C.textMuted};font-size:12px;white-space:nowrap;">Page URL</td>
+             <td style="padding:4px 0;font-family:monospace;font-size:11px;color:${C.textPrimary};word-break:break-all;">${esc(f.url)}</td>
+           </tr>` : '';
+    const retryLabel = f.retries > 0
+        ? `Failed on all ${f.retries + 1} attempts`
+        : 'Failed on first attempt — no retries';
 
     return `
-    <div style="border:1px solid #d32f2f; border-left:5px solid #d32f2f; border-radius:4px;
-                margin-bottom:28px; background:#ffffff; overflow:hidden;">
+  <table width="100%" cellpadding="0" cellspacing="0"
+         style="border:1px solid ${C.border}; border-radius:8px; margin-bottom:20px;
+                overflow:hidden; border-collapse:separate; border-spacing:0;">
 
-      <!-- Card header -->
-      <div style="background:#d32f2f; color:#ffffff; padding:12px 18px;
-                  font-family:Arial,sans-serif; font-size:13px;">
-        <span style="font-weight:700; font-size:14px; letter-spacing:0.5px;">
-          FAILURE ${i + 1} OF ${failures.length}
-        </span>
-        &nbsp;&nbsp;|&nbsp;&nbsp;
-        <span style="font-weight:600;">${esc(f.testId || 'No ID')}</span>
-        &nbsp;&nbsp;|&nbsp;&nbsp;
-        <span style="opacity:0.9;">${esc(f.client)}</span>
-        &nbsp;&nbsp;|&nbsp;&nbsp;
-        <span style="opacity:0.9;">${fmt(f.duration)}</span>
-      </div>
-
-      <div style="padding:18px 20px;">
-
-        <!-- Test identification -->
-        <table style="border-collapse:collapse; width:100%; margin-bottom:16px;
-                      font-family:Arial,sans-serif; font-size:13px;">
-          <tr><td style="${labelStyle}">Test Name</td>
-              <td style="${valStyle} font-weight:600;">${esc(f.testName)}</td></tr>
-          <tr><td style="${labelStyle}">Suite</td>
-              <td style="${valStyle} font-family:monospace;">${esc(f.client)}</td></tr>
-          <tr><td style="${labelStyle}">Section</td>
-              <td style="${valStyle}">${esc(f.section)}</td></tr>
-          <tr><td style="${labelStyle}">Error Type</td>
-              <td style="${valStyle} color:#b71c1c; font-weight:600;">${esc(f.errorType)}</td></tr>
-          ${retryRow}
-        </table>
-
-        <!-- File location -->
-        <div style="background:#f5f5f5; border:1px solid #e0e0e0; border-radius:3px;
-                    padding:10px 14px; margin-bottom:16px; font-family:Arial,sans-serif; font-size:13px;">
-          <div style="font-weight:700; color:#333; margin-bottom:6px; letter-spacing:0.3px;">
-            FILE LOCATION
-          </div>
-          <table style="border-collapse:collapse; width:100%;">
-            <tr><td style="${labelStyle}">File</td>
-                <td style="${valStyle} font-family:monospace;">${esc(shortFile || 'Not available')}</td></tr>
-            <tr><td style="${labelStyle}">Line</td>
-                <td style="${valStyle} font-family:monospace;">${f.line > 0 ? f.line : 'Not available'}</td></tr>
-            ${urlRow}
-            ${flowRow}
-          </table>
-        </div>
-
-        <!-- Error details -->
-        <div style="background:#fff8f8; border:1px solid #f5c6c6; border-radius:3px;
-                    padding:10px 14px; margin-bottom:16px; font-family:Arial,sans-serif; font-size:13px;">
-          <div style="font-weight:700; color:#b71c1c; margin-bottom:8px; letter-spacing:0.3px;">
-            ERROR DETAILS
-          </div>
-          <table style="border-collapse:collapse; width:100%; margin-bottom:10px;">
-            ${locatorRow}
-          </table>
-          <div style="font-family:monospace; font-size:12px; color:#333;
-                      background:#fff3f3; padding:8px 10px; border-radius:3px;
-                      border-left:3px solid #d32f2f; line-height:1.6; white-space:pre-wrap;">
-${errorLines}
-          </div>
-        </div>
-
-        <!-- What failed -->
-        <div style="background:#fff8e1; border:1px solid #ffe082; border-radius:3px;
-                    padding:10px 14px; margin-bottom:16px; font-family:Arial,sans-serif; font-size:13px;">
-          <div style="font-weight:700; color:#e65100; margin-bottom:6px; letter-spacing:0.3px;">
-            WHAT FAILED
-          </div>
-          <div style="color:#333; line-height:1.6;">${esc(f.whatFailed)}</div>
-        </div>
-
-        <!-- Root cause -->
-        <div style="background:#e8f5e9; border:1px solid #a5d6a7; border-radius:3px;
-                    padding:10px 14px; font-family:Arial,sans-serif; font-size:13px;">
-          <div style="font-weight:700; color:#1b5e20; margin-bottom:6px; letter-spacing:0.3px;">
-            ROOT CAUSE
-          </div>
-          <div style="color:#333; line-height:1.6;">${esc(f.rootCause)}</div>
-        </div>
-
-      </div>
-    </div>`;
-}).join('');
-
-const labelStyle = `padding:5px 12px 5px 0; color:#555; white-space:nowrap;
-                    vertical-align:top; font-weight:600; min-width:110px;`;
-const valStyle   = `padding:5px 0; color:#222;`;
-
-const html = `<!DOCTYPE html>
-<html lang="en">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Playwright Test Report</title></head>
-<body style="margin:0; padding:0; background:#f0f0f0; font-family:Arial, sans-serif;">
-
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#f0f0f0;">
-<tr><td align="center" style="padding:24px 12px;">
-<table width="700" cellpadding="0" cellspacing="0"
-       style="background:#ffffff; border-radius:6px; overflow:hidden;
-              box-shadow:0 2px 8px rgba(0,0,0,0.12);">
-
-  <!-- Header -->
-  <tr><td style="background:${headerBg}; padding:20px 28px;">
-    <div style="color:#ffffff; font-size:18px; font-weight:700; letter-spacing:0.5px;">
-      PLAYWRIGHT E2E TEST REPORT
-    </div>
-    <div style="color:rgba(255,255,255,0.85); font-size:13px; margin-top:6px;">
-      ${overallStatus}
-      &nbsp;&nbsp;|&nbsp;&nbsp;${RUN_DATE}
-      ${RUN_URL ? `&nbsp;&nbsp;|&nbsp;&nbsp;<a href="${RUN_URL}"
-        style="color:rgba(255,255,255,0.9); text-decoration:underline;">
-        View Full Run on GitHub Actions</a>` : ''}
-    </div>
-  </td></tr>
-
-  <!-- Summary metrics -->
-  <tr><td style="background:#fafafa; border-bottom:1px solid #e0e0e0; padding:16px 28px;">
-    <table width="100%" cellpadding="0" cellspacing="0">
+    <!-- Card header -->
     <tr>
-      <td align="center" style="padding:0 12px; border-right:1px solid #e0e0e0;">
-        <div style="font-size:26px; font-weight:700; color:#333;">${totalTests}</div>
-        <div style="font-size:11px; color:#777; letter-spacing:0.5px; text-transform:uppercase;">Total</div>
-      </td>
-      <td align="center" style="padding:0 12px; border-right:1px solid #e0e0e0;">
-        <div style="font-size:26px; font-weight:700; color:#1b5e20;">${totalPassed}</div>
-        <div style="font-size:11px; color:#777; letter-spacing:0.5px; text-transform:uppercase;">Passed</div>
-      </td>
-      <td align="center" style="padding:0 12px; border-right:1px solid #e0e0e0;">
-        <div style="font-size:26px; font-weight:700; color:${totalFailed > 0 ? '#b71c1c' : '#333'};">
-          ${totalFailed}
-        </div>
-        <div style="font-size:11px; color:#777; letter-spacing:0.5px; text-transform:uppercase;">Failed</div>
-      </td>
-      <td align="center" style="padding:0 12px; border-right:1px solid #e0e0e0;">
-        <div style="font-size:26px; font-weight:700; color:#555;">${totalSkipped}</div>
-        <div style="font-size:11px; color:#777; letter-spacing:0.5px; text-transform:uppercase;">Skipped</div>
-      </td>
-      <td align="center" style="padding:0 12px;">
-        <div style="font-size:26px; font-weight:700; color:#e65100;">${totalFlaky}</div>
-        <div style="font-size:11px; color:#777; letter-spacing:0.5px; text-transform:uppercase;">Flaky</div>
+      <td style="background:${C.navy}; padding:12px 18px; border-radius:8px 8px 0 0;">
+        <table width="100%" cellpadding="0" cellspacing="0"><tr>
+          <td>
+            <span style="background:${C.red}; color:#fff; padding:3px 10px;
+                         border-radius:4px; font-size:11px; font-weight:700;
+                         letter-spacing:0.5px; margin-right:8px;">${esc(f.testId || '#' + (i+1))}</span>
+            <span style="color:#fff; font-size:13px; font-weight:600;">${esc(f.testName)}</span>
+          </td>
+          <td align="right" style="white-space:nowrap; padding-left:12px;">
+            <span style="color:rgba(255,255,255,0.65); font-size:12px;">${esc(f.client)}</span>
+            <span style="color:rgba(255,255,255,0.4); font-size:12px; margin:0 6px;">·</span>
+            <span style="color:rgba(255,255,255,0.65); font-size:12px;">${fmt(f.duration)}</span>
+            <span style="color:rgba(255,255,255,0.4); font-size:12px; margin:0 6px;">·</span>
+            <span style="color:rgba(255,255,255,0.5); font-size:11px;">${i + 1} of ${failures.length}</span>
+          </td>
+        </tr></table>
       </td>
     </tr>
-    </table>
+
+    <!-- Card body -->
+    <tr><td style="padding:16px 18px; background:#fff;">
+
+      <!-- Meta info row -->
+      <table width="100%" cellpadding="0" cellspacing="0"
+             style="border:1px solid ${C.border}; border-radius:6px; margin-bottom:14px;
+                    border-collapse:collapse; font-size:12px; overflow:hidden;">
+        <tr style="background:#f8fafc;">
+          <td style="padding:8px 14px; border-right:1px solid ${C.border}; border-bottom:1px solid ${C.border};">
+            <div style="color:${C.textMuted}; font-size:10px; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:3px;">Error Type</div>
+            <div style="color:${C.red}; font-weight:700; font-size:12px;">${esc(f.errorType)}</div>
+          </td>
+          <td style="padding:8px 14px; border-right:1px solid ${C.border}; border-bottom:1px solid ${C.border};">
+            <div style="color:${C.textMuted}; font-size:10px; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:3px;">File</div>
+            <div style="color:${C.textPrimary}; font-family:monospace; font-size:11px;">${esc(shortFile || 'N/A')}</div>
+          </td>
+          <td style="padding:8px 14px; border-right:1px solid ${C.border}; border-bottom:1px solid ${C.border};">
+            <div style="color:${C.textMuted}; font-size:10px; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:3px;">Line</div>
+            <div style="color:${C.textPrimary}; font-family:monospace; font-size:12px;">${f.line > 0 ? f.line : '—'}</div>
+          </td>
+          <td style="padding:8px 14px; border-bottom:1px solid ${C.border};">
+            <div style="color:${C.textMuted}; font-size:10px; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:3px;">Retries</div>
+            <div style="color:${C.textPrimary}; font-size:12px;">${retryLabel}</div>
+          </td>
+        </tr>
+        ${(f.section) ? `
+        <tr style="background:#fff;">
+          <td colspan="4" style="padding:7px 14px;">
+            <span style="color:${C.textMuted}; font-size:10px; text-transform:uppercase; letter-spacing:0.8px;">Section &nbsp;</span>
+            <span style="color:${C.textPrimary}; font-size:12px;">${esc(f.section)}</span>
+          </td>
+        </tr>` : ''}
+        ${(f.url || f.locator) ? `
+        <tr style="background:#fff;">
+          <td colspan="4" style="padding:7px 14px;">
+            <table cellpadding="0" cellspacing="0" width="100%">
+              ${locatorHtml}
+              ${urlHtml}
+            </table>
+          </td>
+        </tr>` : ''}
+      </table>
+
+      <!-- Error block -->
+      <div style="background:#0d2137; border-radius:6px; padding:12px 14px; margin-bottom:14px;">
+        <div style="color:rgba(255,255,255,0.45); font-size:10px; text-transform:uppercase;
+                    letter-spacing:1px; margin-bottom:8px; font-family:monospace;">error output</div>
+        <div style="font-family:monospace; font-size:12px; color:#f9a8a8;
+                    line-height:1.7; white-space:normal; word-break:break-word;">${errorLines}</div>
+      </div>
+
+      <!-- What failed / Root cause — side by side -->
+      <table width="100%" cellpadding="0" cellspacing="0">
+      <tr>
+        <td width="49%" valign="top"
+            style="background:#fffde7; border:1px solid #ffe082; border-radius:6px; padding:12px 14px;">
+          <div style="color:#e65100; font-size:10px; font-weight:700; text-transform:uppercase;
+                      letter-spacing:1px; margin-bottom:6px;">&#9888; What Failed</div>
+          <div style="color:#3e2723; font-size:12px; line-height:1.65;">${esc(f.whatFailed)}</div>
+        </td>
+        <td width="2%"></td>
+        <td width="49%" valign="top"
+            style="background:#e8f5e9; border:1px solid #a5d6a7; border-radius:6px; padding:12px 14px;">
+          <div style="color:#1b5e20; font-size:10px; font-weight:700; text-transform:uppercase;
+                      letter-spacing:1px; margin-bottom:6px;">&#128270; Root Cause</div>
+          <div style="color:#1b2d1e; font-size:12px; line-height:1.65;">${esc(f.rootCause)}</div>
+        </td>
+      </tr>
+      </table>
+
+    </td></tr>
+  </table>`;
+}).join('');
+
+// ── Pass rate bar width (capped 0–100) ────────────────────────────────────────
+const barWidth = Math.min(100, Math.max(0, passRate));
+const barColor = passRate >= 90 ? C.green : passRate >= 70 ? '#f9a825' : C.red;
+
+// ── Full HTML ─────────────────────────────────────────────────────────────────
+const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Playwright E2E Test Report</title>
+</head>
+<body style="margin:0;padding:0;background:${C.bgPage};font-family:Arial,Helvetica,sans-serif;">
+
+<table width="100%" cellpadding="0" cellspacing="0" style="background:${C.bgPage};">
+<tr><td align="center" style="padding:28px 16px;">
+<table width="680" cellpadding="0" cellspacing="0"
+       style="background:#fff;border-radius:10px;overflow:hidden;
+              box-shadow:0 4px 24px rgba(0,0,0,0.13);">
+
+  <!-- ── TOP ACCENT BAR ──────────────────────────────────────────────── -->
+  <tr><td style="background:${hasFailed ? C.red : C.green};height:4px;padding:0;font-size:0;line-height:0;">&nbsp;</td></tr>
+
+  <!-- ── HEADER ──────────────────────────────────────────────────────── -->
+  <tr><td style="background:${C.navy};padding:26px 32px 22px;">
+    <table width="100%" cellpadding="0" cellspacing="0"><tr>
+      <td>
+        <div style="color:rgba(255,255,255,0.5);font-size:10px;letter-spacing:2px;
+                    text-transform:uppercase;margin-bottom:5px;font-family:Arial,sans-serif;">
+          Setter &nbsp;·&nbsp; Playwright Automation
+        </div>
+        <div style="color:#ffffff;font-size:20px;font-weight:700;letter-spacing:0.3px;
+                    font-family:Arial,sans-serif;">
+          E2E Test Run Report
+        </div>
+        <div style="margin-top:12px;">
+          <span style="display:inline-block;background:${hasFailed ? C.red : C.green};
+                       color:#fff;padding:4px 14px;border-radius:20px;
+                       font-size:12px;font-weight:700;letter-spacing:0.5px;">
+            ${hasFailed ? '&#10005;&nbsp; FAILED' : '&#10003;&nbsp; ALL PASSED'}
+          </span>
+        </div>
+      </td>
+      <td align="right" valign="top">
+        <div style="color:rgba(255,255,255,0.55);font-size:12px;line-height:1.8;
+                    font-family:Arial,sans-serif;text-align:right;">
+          <div>${RUN_DATE}</div>
+          ${RUN_URL ? `<div><a href="${RUN_URL}"
+            style="color:#90caf9;text-decoration:none;font-size:12px;">
+            View on GitHub Actions &#8594;</a></div>` : ''}
+        </div>
+      </td>
+    </tr></table>
   </td></tr>
 
-  <!-- Body -->
-  <tr><td style="padding:24px 28px;">
+  <!-- ── PASS RATE BAR ────────────────────────────────────────────────── -->
+  <tr><td style="background:${C.navyLight};padding:14px 32px 16px;">
+    <table width="100%" cellpadding="0" cellspacing="0"><tr>
+      <td style="color:rgba(255,255,255,0.6);font-size:11px;white-space:nowrap;
+                 padding-right:14px;font-family:Arial,sans-serif;">Pass Rate</td>
+      <td width="100%">
+        <div style="background:rgba(255,255,255,0.12);border-radius:6px;height:8px;overflow:hidden;">
+          <div style="background:${barColor};width:${barWidth}%;height:8px;border-radius:6px;"></div>
+        </div>
+      </td>
+      <td style="color:#fff;font-size:13px;font-weight:700;padding-left:14px;
+                 white-space:nowrap;font-family:Arial,sans-serif;">${passRate}%</td>
+    </tr></table>
+  </td></tr>
 
-    <!-- Results by client -->
-    <div style="font-size:14px; font-weight:700; color:#333; margin-bottom:12px;
-                letter-spacing:0.5px; text-transform:uppercase; border-bottom:2px solid #e0e0e0;
-                padding-bottom:6px;">
-      Results by Client
+  <!-- ── METRICS ──────────────────────────────────────────────────────── -->
+  <tr><td style="background:#f8fafc;border-bottom:1px solid ${C.border};padding:0;">
+    <table width="100%" cellpadding="0" cellspacing="0"><tr>
+      <td align="center" style="padding:20px 0;border-right:1px solid ${C.border};">
+        <div style="font-size:30px;font-weight:800;color:${C.navy};font-family:Arial,sans-serif;">${totalTests}</div>
+        <div style="font-size:10px;color:${C.textMuted};text-transform:uppercase;
+                    letter-spacing:1px;margin-top:3px;font-family:Arial,sans-serif;">Total</div>
+      </td>
+      <td align="center" style="padding:20px 0;border-right:1px solid ${C.border};">
+        <div style="font-size:30px;font-weight:800;color:${C.green};font-family:Arial,sans-serif;">${totalPassed}</div>
+        <div style="font-size:10px;color:${C.textMuted};text-transform:uppercase;
+                    letter-spacing:1px;margin-top:3px;font-family:Arial,sans-serif;">Passed</div>
+      </td>
+      <td align="center" style="padding:20px 0;border-right:1px solid ${C.border};">
+        <div style="font-size:30px;font-weight:800;font-family:Arial,sans-serif;
+                    color:${hasFailed ? C.red : C.textMuted};">${totalFailed}</div>
+        <div style="font-size:10px;color:${C.textMuted};text-transform:uppercase;
+                    letter-spacing:1px;margin-top:3px;font-family:Arial,sans-serif;">Failed</div>
+      </td>
+      <td align="center" style="padding:20px 0;border-right:1px solid ${C.border};">
+        <div style="font-size:30px;font-weight:800;color:${C.grey};font-family:Arial,sans-serif;">${totalSkipped}</div>
+        <div style="font-size:10px;color:${C.textMuted};text-transform:uppercase;
+                    letter-spacing:1px;margin-top:3px;font-family:Arial,sans-serif;">Skipped</div>
+      </td>
+      <td align="center" style="padding:20px 0;">
+        <div style="font-size:30px;font-weight:800;color:${C.amber};font-family:Arial,sans-serif;">${totalFlaky}</div>
+        <div style="font-size:10px;color:${C.textMuted};text-transform:uppercase;
+                    letter-spacing:1px;margin-top:3px;font-family:Arial,sans-serif;">Flaky</div>
+      </td>
+    </tr></table>
+  </td></tr>
+
+  <!-- ── BODY ─────────────────────────────────────────────────────────── -->
+  <tr><td style="padding:28px 32px;">
+
+    <!-- Section label -->
+    <div style="font-size:10px;font-weight:700;color:${C.textMuted};text-transform:uppercase;
+                letter-spacing:1.5px;margin-bottom:12px;font-family:Arial,sans-serif;">
+      Client Results
     </div>
+
+    <!-- Client table -->
     <table width="100%" cellpadding="0" cellspacing="0"
-           style="border-collapse:collapse; font-size:13px; margin-bottom:28px;">
-      <tr style="background:#eeeeee; border-bottom:2px solid #bdbdbd;">
-        <th style="padding:9px 14px; text-align:left; font-weight:700; color:#333;">Status</th>
-        <th style="padding:9px 14px; text-align:left; font-weight:700; color:#333;">Client</th>
-        <th style="padding:9px 14px; text-align:center; font-weight:700; color:#333;">Total</th>
-        <th style="padding:9px 14px; text-align:center; font-weight:700; color:#1b5e20;">Passed</th>
-        <th style="padding:9px 14px; text-align:center; font-weight:700; color:#b71c1c;">Failed</th>
-        <th style="padding:9px 14px; text-align:center; font-weight:700; color:#555;">Skipped</th>
-        <th style="padding:9px 14px; text-align:center; font-weight:700; color:#e65100;">Flaky</th>
+           style="border-collapse:collapse;border:1px solid ${C.border};
+                  border-radius:8px;overflow:hidden;margin-bottom:30px;">
+      <tr style="background:#f1f5f9;">
+        <th style="padding:10px 16px;text-align:left;font-size:11px;color:${C.textMuted};
+                   text-transform:uppercase;letter-spacing:0.8px;font-weight:700;
+                   border-bottom:1px solid ${C.border};">Client</th>
+        <th style="padding:10px 16px;text-align:center;font-size:11px;color:${C.textMuted};
+                   text-transform:uppercase;letter-spacing:0.8px;font-weight:700;
+                   border-bottom:1px solid ${C.border};">Status</th>
+        <th style="padding:10px 16px;text-align:center;font-size:11px;color:${C.textMuted};
+                   text-transform:uppercase;letter-spacing:0.8px;font-weight:700;
+                   border-bottom:1px solid ${C.border};">Total</th>
+        <th style="padding:10px 16px;text-align:center;font-size:11px;color:${C.green};
+                   text-transform:uppercase;letter-spacing:0.8px;font-weight:700;
+                   border-bottom:1px solid ${C.border};">&#10003; Pass</th>
+        <th style="padding:10px 16px;text-align:center;font-size:11px;color:${C.red};
+                   text-transform:uppercase;letter-spacing:0.8px;font-weight:700;
+                   border-bottom:1px solid ${C.border};">&#10005; Fail</th>
+        <th style="padding:10px 16px;text-align:center;font-size:11px;color:${C.textMuted};
+                   text-transform:uppercase;letter-spacing:0.8px;font-weight:700;
+                   border-bottom:1px solid ${C.border};">Skip</th>
+        <th style="padding:10px 16px;text-align:center;font-size:11px;color:${C.amber};
+                   text-transform:uppercase;letter-spacing:0.8px;font-weight:700;
+                   border-bottom:1px solid ${C.border};">Flaky</th>
       </tr>
-      ${summaryRows}
-      ${summaryTotals}
+      ${clientRowsHtml}
     </table>
 
     ${failures.length > 0 ? `
-    <!-- Failure details -->
-    <div style="font-size:14px; font-weight:700; color:#b71c1c; margin-bottom:16px;
-                letter-spacing:0.5px; text-transform:uppercase; border-bottom:2px solid #d32f2f;
-                padding-bottom:6px;">
-      Failure Details  (${failures.length} ${failures.length === 1 ? 'failure' : 'failures'})
-    </div>
-    ${failureCards}
+
+    <!-- Failure section label -->
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:16px;">
+    <tr>
+      <td>
+        <div style="font-size:10px;font-weight:700;color:${C.textMuted};text-transform:uppercase;
+                    letter-spacing:1.5px;font-family:Arial,sans-serif;">Failure Details</div>
+      </td>
+      <td align="right">
+        <span style="background:${C.red};color:#fff;padding:3px 12px;border-radius:20px;
+                     font-size:11px;font-weight:700;">${failures.length} ${failures.length === 1 ? 'failure' : 'failures'}</span>
+      </td>
+    </tr>
+    </table>
+
+    ${failureCardsHtml}
+
     ` : `
-    <div style="background:#e8f5e9; border:1px solid #a5d6a7; border-radius:4px;
-                padding:18px 20px; text-align:center;">
-      <div style="font-size:15px; font-weight:700; color:#1b5e20;">All tests passed successfully.</div>
-      <div style="font-size:13px; color:#555; margin-top:4px;">
-        No failures detected in this run.
-      </div>
-    </div>`}
+    <!-- All passed banner -->
+    <table width="100%" cellpadding="0" cellspacing="0">
+    <tr><td style="background:${C.greenLight};border:1px solid #a5d6a7;border-radius:8px;
+                   padding:22px 24px;text-align:center;">
+      <div style="font-size:20px;margin-bottom:6px;">&#9989;</div>
+      <div style="font-size:15px;font-weight:700;color:${C.green};
+                  font-family:Arial,sans-serif;">All tests passed successfully</div>
+      <div style="font-size:13px;color:#4a7c59;margin-top:4px;
+                  font-family:Arial,sans-serif;">No failures detected in this run.</div>
+    </td></tr>
+    </table>
+    `}
 
   </td></tr>
 
-  <!-- Footer -->
-  <tr><td style="background:#f5f5f5; border-top:1px solid #e0e0e0;
-                 padding:14px 28px; text-align:center;">
-    <div style="font-size:12px; color:#777;">
-      Automated report generated by Playwright E2E Test Suite
-      ${RUN_URL ? `&nbsp;&nbsp;|&nbsp;&nbsp;
-        <a href="${RUN_URL}" style="color:#1565c0; text-decoration:none;">
-          View Full Run on GitHub Actions
-        </a>` : ''}
-    </div>
+  <!-- ── FOOTER ───────────────────────────────────────────────────────── -->
+  <tr><td style="background:${C.navy};padding:16px 32px;">
+    <table width="100%" cellpadding="0" cellspacing="0"><tr>
+      <td style="color:rgba(255,255,255,0.45);font-size:11px;font-family:Arial,sans-serif;">
+        Playwright E2E &nbsp;·&nbsp; Setter Medical Platform &nbsp;·&nbsp; Automated Test Report
+      </td>
+      ${RUN_URL ? `<td align="right">
+        <a href="${RUN_URL}" style="color:#90caf9;font-size:11px;text-decoration:none;
+                                   font-family:Arial,sans-serif;">
+          View Full Run on GitHub &#8594;
+        </a>
+      </td>` : ''}
+    </tr></table>
   </td></tr>
 
 </table>

@@ -133,10 +133,12 @@ export function makeNewPatientFixtures(clientKey) {
                 await context.close();
                 if (e.message.startsWith('NO_SLOTS_AVAILABLE') || e.message.startsWith('CLIENT_NOT_CONFIGURED')) {
                     console.log(`[${clientKey}] No available slots in staging — patient info tests will be skipped`);
-                    // testInfo.skip may not be available in worker-scoped fixtures on retry
-                    if (typeof testInfo?.skip === 'function') {
-                        testInfo.skip(true, `[${clientKey}] No available slots in staging — patient info tests skipped`);
-                    }
+                    await use(null); // worker-scoped: must call use() or subsequent tests throw
+                    return;
+                }
+                if (/ERR_CONNECTION_RESET|ERR_NAME_NOT_RESOLVED|ERR_NETWORK|net::ERR_/i.test(e.message)) {
+                    console.log(`[${clientKey}] Network error during fixture setup — patient info tests will be skipped`);
+                    await use(null);
                     return;
                 }
                 throw new Error(`[${clientKey}] patientPage fixture failed.\n  Flow: ${flow.join(' → ')}\n  ${e.message}`);
@@ -160,6 +162,12 @@ export function makeNewPatientFixtures(clientKey) {
                 await context.close();
                 if (e.message.startsWith('NO_SLOTS_AVAILABLE') || e.message.startsWith('CLIENT_NOT_CONFIGURED')) {
                     testInfo.skip(true, `[${clientKey}] No available slots in staging — patient info tests skipped`);
+                    return;
+                }
+                // Transient network errors (connection reset, DNS, timeout) — skip instead of fail
+                if (/ERR_CONNECTION_RESET|ERR_NAME_NOT_RESOLVED|ERR_NETWORK|net::ERR_/i.test(e.message)) {
+                    console.log(`[${clientKey}] Network error during fixture setup — skipping test`);
+                    testInfo.skip(true, `[${clientKey}] Stage network error — test skipped`);
                     return;
                 }
                 throw new Error(`[${clientKey}] patientInfoPage fixture failed.\n  Flow: ${flow.join(' → ')}\n  ${e.message}`);

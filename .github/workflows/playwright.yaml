@@ -86,11 +86,12 @@ jobs:
           path: test-results/
           retention-days: 14
 
-  # ── Extended suite — only on main / stage / PRs / schedule (not dev) ───────
+  # ── Extended suite — runs on dev, main, stage, PRs, and schedule ───────────
   # Clarus is already in test-core so only remaining clients run here.
   test-full:
     if: |
       (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/stage' ||
+       github.ref == 'refs/heads/dev' ||
        github.event_name == 'pull_request' || github.event_name == 'schedule') ||
       (github.event_name == 'workflow_dispatch' &&
        (inputs.project == 'all' ||
