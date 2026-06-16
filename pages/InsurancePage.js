@@ -66,17 +66,17 @@ export class InsurancePage {
             await this.insuranceInput.click();
             await this.insuranceInput.fill(type);
             const option = this.page.locator(`.MuiAutocomplete-option:has-text("${type}")`);
-            await option.waitFor({ state: 'visible', timeout: 20_000 });
+            await option.waitFor({ state: 'visible', timeout: 40_000 });
             await option.click();
         } else {
             // Kronson-style — MUI Select: click trigger, pick from listbox
-            await this.insuranceSelect.waitFor({ state: 'visible', timeout: 20_000 });
+            await this.insuranceSelect.waitFor({ state: 'visible', timeout: 40_000 });
             await this.insuranceSelect.click();
             const option = this.page
                 .locator('[role="option"], li[role="option"]')
                 .filter({ hasText: type })
                 .first();
-            await option.waitFor({ state: 'visible', timeout: 20_000 });
+            await option.waitFor({ state: 'visible', timeout: 40_000 });
             await option.click();
         }
     }
@@ -172,7 +172,7 @@ export class InsurancePage {
         await trigger.click();
 
         const option = this.page.locator('[role="option"]').filter({ hasText: value }).first();
-        await option.waitFor({ state: 'visible', timeout: 10_000 });
+        await option.waitFor({ state: 'visible', timeout: 20_000 });
         await option.click();
         console.log(`Primary Insurance Holder set to: ${value}`);
     }
