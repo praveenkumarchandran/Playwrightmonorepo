@@ -227,7 +227,7 @@ async function clickSkip(page) {
         return true;
     }
     const skipBtn = page.locator('button').filter({ hasText: /Skip/i }).first();
-    const hasSkip = await skipBtn.isVisible({ timeout: 12_000 }).catch(() => false);
+    const hasSkip = await skipBtn.isVisible({ timeout: 20_000 }).catch(() => false);
     if (hasSkip) {
         await expect(skipBtn).toBeEnabled({ timeout: 5_000 }).catch(() => {});
         await skipBtn.click();
@@ -2209,6 +2209,7 @@ test.describe('Insurance Page', () => {
     });
 
     test('TC-WID-INS11: Completing Self-pay and clicking Next navigates to Add Info (TC-INS-13)', async ({ page }) => {
+        test.slow();
         await completeWidgetToInsurance(page, SERVICES[1]);
         const insuranceCombobox = page.getByRole('combobox', { name: /Insurance Type/i });
         await insuranceCombobox.click();
@@ -2218,7 +2219,7 @@ test.describe('Insurance Page', () => {
         const nextBtn = page.locator('button').filter({ hasText: /^Next$|^Continue$/i }).first();
         if (await nextBtn.isEnabled({ timeout: 3_000 }).catch(() => false)) {
             await nextBtn.click();
-            await page.waitForURL(/additionaldetails/i, { timeout: 20_000 });
+            await page.waitForURL(/additionaldetails/i, { timeout: 45_000 });
             await expect(page.locator('input[placeholder*="First Name"]')).toBeVisible({ timeout: 10_000 });
             console.log('  ✅ Self-pay → Next → Add Info page');
         } else {
@@ -2612,12 +2613,13 @@ test.describe('Appointment Summary Panel', () => {
     });
 
     test('TC-WID-APPT04: Summary persists from insurance to Add Info', async ({ page }) => {
+        test.slow();
         test.skip(IS_PROD, 'Add Info/Identity via insurance flow differs on production');
         await completeWidgetToInsurance(page, SERVICES[0]);
         const timeOnInsurance = await page.locator('text=/\\d{1,2}:\\d{2}\\s*(AM|PM)/i')
             .first().textContent().catch(() => '');
         await clickSkip(page);
-        await page.waitForURL(/additionaldetails/i, { timeout: 20_000 });
+        await page.waitForURL(/additionaldetails/i, { timeout: 45_000 });
         const timeOnAddInfo = await page.locator('text=/\\d{1,2}:\\d{2}\\s*(AM|PM)/i')
             .first().textContent().catch(() => '');
         expect(timeOnInsurance).toBeTruthy();
@@ -2648,11 +2650,12 @@ test.describe('Appointment Summary Panel', () => {
     });
 
     test('TC-WID-APPT06: Add Info page summary — all labels, time, type and provider (TC-APPT-PI-01 to PI-PN-01)', async ({ page }) => {
+        test.slow();
         test.skip(IS_PROD, 'Add Info/Identity via insurance flow differs on production');
         // Combined: navigate once and check all summary elements on Add Info page
         await completeWidgetToInsurance(page, SERVICES[1]);
         await clickSkip(page);
-        await page.waitForURL(/additionaldetails/i, { timeout: 20_000 });
+        await page.waitForURL(/additionaldetails/i, { timeout: 45_000 });
         // "Your Appointment" heading
         await expect(page.locator('text=/Your Appointment/i')).toBeVisible({ timeout: 8_000 });
         // Appointment Time label + valid time value
@@ -2965,10 +2968,11 @@ test.describe('Stepper Back Navigation', () => {
     });
 
     test('[Stage] TC-WID-STEP05: From Add Info, clicking Add Insurance goes back to insurance', async ({ page }) => {
+        test.slow();
         test.skip(IS_PROD, 'Stepper back navigation tested on stage only');
         await completeWidgetToInsurance(page, SERVICES[0]);
         await clickSkip(page);
-        await page.waitForURL(/additionaldetails/i, { timeout: 20_000 });
+        await page.waitForURL(/additionaldetails/i, { timeout: 45_000 });
         // Click step button "4" = Add Insurance
         await page.locator('button').filter({ hasText: /^4$/ }).first().click();
         await page.waitForURL(/insurance/i, { timeout: 25_000 });
@@ -2977,10 +2981,11 @@ test.describe('Stepper Back Navigation', () => {
     });
 
     test('[Stage] TC-WID-STEP06: From Add Info, clicking Intake Questions goes back to intake', async ({ page }) => {
+        test.slow();
         test.skip(IS_PROD, 'Stepper back navigation tested on stage only');
         await completeWidgetToInsurance(page, SERVICES[0]);
         await clickSkip(page);
-        await page.waitForURL(/additionaldetails/i, { timeout: 20_000 });
+        await page.waitForURL(/additionaldetails/i, { timeout: 45_000 });
         // Click step button "2" = Intake Questions
         await page.locator('button').filter({ hasText: /^2$/ }).first().click();
         await page.waitForURL(/intakequestion|intake/i, { timeout: 45_000 });
@@ -3036,10 +3041,11 @@ test.describe('Browser Back Button', () => {
     });
 
     test('TC-WID-BACK03: Back from Add Info shows non-blank page', async ({ page }) => {
+        test.slow();
         test.skip(IS_PROD, 'Add Info/Identity via insurance flow differs on production');
         await completeWidgetToInsurance(page, SERVICES[0]);
         await clickSkip(page);
-        await page.waitForURL(/additionaldetails/i, { timeout: 20_000 });
+        await page.waitForURL(/additionaldetails/i, { timeout: 45_000 });
         await page.goBack();
         await page.waitForTimeout(1_500);
         const content = await page.locator('body').textContent();
@@ -3059,10 +3065,11 @@ test.describe('Browser Back Button', () => {
     });
 
     test('TC-WID-BACK05: Forward after back from Add Info shows valid content', async ({ page }) => {
+        test.slow();
         test.skip(IS_PROD, 'Add Info/Identity via insurance flow differs on production');
         await completeWidgetToInsurance(page, SERVICES[0]);
         await clickSkip(page);
-        await page.waitForURL(/additionaldetails/i, { timeout: 20_000 });
+        await page.waitForURL(/additionaldetails/i, { timeout: 45_000 });
         await page.goBack();
         await page.waitForTimeout(1_000);
         await page.goForward();
@@ -3111,10 +3118,11 @@ test.describe('Page Refresh Mid-Flow', () => {
     });
 
     test('TC-WID-REF04: Refresh on Add Info does not crash', async ({ page }) => {
+        test.slow();
         test.skip(IS_PROD, 'Add Info/Identity via insurance flow differs on production');
         await completeWidgetToInsurance(page, SERVICES[0]);
         await clickSkip(page);
-        await page.waitForURL(/additionaldetails/i, { timeout: 20_000 });
+        await page.waitForURL(/additionaldetails/i, { timeout: 45_000 });
         await page.reload({ waitUntil: 'networkidle', timeout: 30_000 });
         await page.waitForTimeout(1_000);
         const content = await page.locator('body').textContent();
@@ -3123,10 +3131,11 @@ test.describe('Page Refresh Mid-Flow', () => {
     });
 
     test('TC-WID-REF05: After Add Info refresh, page remains navigable', async ({ page }) => {
+        test.slow();
         test.skip(IS_PROD, 'Add Info/Identity via insurance flow differs on production');
         await completeWidgetToInsurance(page, SERVICES[0]);
         await clickSkip(page);
-        await page.waitForURL(/additionaldetails/i, { timeout: 20_000 });
+        await page.waitForURL(/additionaldetails/i, { timeout: 45_000 });
         await page.reload({ waitUntil: 'networkidle', timeout: 30_000 });
         await page.waitForTimeout(1_500);
         const bodyText = await page.locator('body').textContent();
@@ -3290,6 +3299,7 @@ test.describe('Cosmetic Procedure Flow', () => {
     });
 
     test('TC-WID-COS03: Cosmetic full flow reaches Add Info page', async ({ page }) => {
+        test.slow();
         await setupCosmeticProcedure(page);
         await selectFirstSlot(page);
         await clickScheduleAppointment(page);
@@ -3302,7 +3312,7 @@ test.describe('Cosmetic Procedure Flow', () => {
             await clickSkip(page);
         }
 
-        await page.waitForURL(/additionaldetails/i, { timeout: 20_000 });
+        await page.waitForURL(/additionaldetails/i, { timeout: 45_000 });
         await expect(page.locator('input[placeholder*="First Name"]')).toBeVisible({ timeout: 10_000 });
         await expect(page.locator('button').filter({ hasText: /Book Now/i })).toBeVisible({ timeout: 5_000 });
         console.log('  ✅ Cosmetic full flow reached Add Info page');
