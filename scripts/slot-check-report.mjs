@@ -91,184 +91,159 @@ const checkId = `slot-check-#${runId}`;
 const esc = s => String(s ?? '')
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-const headerBg = failures.length > 0 ? '#b71c1c' : '#1b5e20';
-const status   = failures.length > 0 ? 'DUPLICATE APPOINTMENT SLOTS DETECTED' : 'NO DUPLICATE SLOTS FOUND';
+const hasIssues   = failures.length > 0;
+const clientsOk   = totalChecked - failures.length;
 
-// Summary block
-const summaryBlock = `
-<table width="100%" cellpadding="0" cellspacing="0"
-       style="border-collapse:collapse; font-size:13px; font-family:Arial,sans-serif;">
-  <tr style="background:#fafafa;">
-    <td style="padding:8px 16px; color:#555; font-weight:600; width:200px; border-bottom:1px solid #e8e8e8;">Run Time</td>
-    <td style="padding:8px 16px; color:#222; border-bottom:1px solid #e8e8e8;">${esc(RUN_DATE)}</td>
-  </tr>
-  <tr>
-    <td style="padding:8px 16px; color:#555; font-weight:600; border-bottom:1px solid #e8e8e8;">Check ID</td>
-    <td style="padding:8px 16px; color:#222; font-family:monospace; border-bottom:1px solid #e8e8e8;">${esc(checkId)}</td>
-  </tr>
-  <tr style="background:#fafafa;">
-    <td style="padding:8px 16px; color:#555; font-weight:600; border-bottom:1px solid #e8e8e8;">Total Clients Checked</td>
-    <td style="padding:8px 16px; color:#222; border-bottom:1px solid #e8e8e8;">${totalChecked}</td>
-  </tr>
-  <tr>
-    <td style="padding:8px 16px; color:#555; font-weight:600; border-bottom:1px solid #e8e8e8;">Clients Affected</td>
-    <td style="padding:8px 16px; font-weight:700; color:${failures.length > 0 ? '#b71c1c' : '#1b5e20'}; border-bottom:1px solid #e8e8e8;">
-      ${failures.length}
-    </td>
-  </tr>
-  <tr style="background:#fafafa;">
-    <td style="padding:8px 16px; color:#555; font-weight:600;">Total Duplicate Pairs</td>
-    <td style="padding:8px 16px; font-weight:700; color:${totalPairs > 0 ? '#b71c1c' : '#1b5e20'};">
-      ${totalPairs}
-    </td>
-  </tr>
-</table>`;
+// ── Per-client affected cards ─────────────────────────────────────────────────
 
-// Client sections
-const clientSections = failures.map((f, i) => {
+const clientCards = failures.map(f => {
     const pairCount = Math.max(f.pairs.length, 1);
 
-    const metaRows = [
-        f.location ? `<tr><td style="padding:6px 16px; color:#555; font-weight:600; width:120px; border-bottom:1px solid #f0f0f0;">Location</td><td style="padding:6px 16px; color:#222; border-bottom:1px solid #f0f0f0;">${esc(f.location)}</td></tr>` : '',
-        f.service  ? `<tr style="background:#fafafa;"><td style="padding:6px 16px; color:#555; font-weight:600; border-bottom:1px solid #f0f0f0;">Service</td><td style="padding:6px 16px; color:#222; border-bottom:1px solid #f0f0f0;">${esc(f.service)}</td></tr>` : '',
-        f.provider ? `<tr><td style="padding:6px 16px; color:#555; font-weight:600; border-bottom:1px solid #f0f0f0;">Provider</td><td style="padding:6px 16px; color:#222; border-bottom:1px solid #f0f0f0;">${esc(f.provider)}</td></tr>` : '',
-        `<tr style="background:#fff3f3;"><td style="padding:6px 16px; color:#555; font-weight:600;">Duplicates Found</td><td style="padding:6px 16px; color:#b71c1c; font-weight:700;">${pairCount} ${pairCount === 1 ? 'pair' : 'pairs'}</td></tr>`,
-    ].filter(Boolean).join('');
-
     const slotRows = f.pairs.length > 0
-        ? f.pairs.map((p, j) => {
-            const dt   = p['date/time'] ?? p['datetime'] ?? null;
-            const ids  = p['appointmentid'] ?? p['duplicate'] ?? p['appointmenttypeid'] ?? null;
-            const by   = p['bookedby'] ?? null;
-            const raw  = p['raw'] ?? null;
+        ? f.pairs.map(p => {
+            const dt  = p['date/time'] ?? p['datetime'] ?? null;
+            const ids = p['appointmentid'] ?? p['duplicate'] ?? p['appointmenttypeid'] ?? null;
+            const by  = p['bookedby'] ?? null;
+            const raw = p['raw'] ?? null;
+
+            const idChips = ids
+                ? ids.split(/[,\s]+/).filter(Boolean).map(id =>
+                    `<span style="font-family:'Courier New',Courier,monospace;font-size:12px;
+                            background:#F3F4F6;border:1px solid #E5E7EB;color:#374151;
+                            padding:2px 9px;border-radius:3px;display:inline-block;">${esc(id.trim())}</span>`
+                  ).join(' ')
+                : null;
 
             return `
-      <tr style="background:#fffafa;">
-        <td colspan="2" style="padding:4px 16px 0;">
-          <div style="font-size:11px; font-weight:700; color:#888; letter-spacing:0.5px;
-                      padding-top:10px; border-top:1px dashed #e0e0e0;">
-            SLOT ${j + 1} OF ${pairCount}
+        <div style="padding:16px 18px;border-bottom:1px solid #F0F2F5;">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px 20px;margin-bottom:${idChips ? '14px' : '0'};">
+            ${f.provider ? `<div><div style="font-size:10px;text-transform:uppercase;letter-spacing:.9px;color:#A0ABBA;font-weight:600;margin-bottom:3px;">Provider</div><div style="font-size:13px;font-weight:500;color:#1A2B3C;">${esc(f.provider)}</div></div>` : ''}
+            ${f.location ? `<div><div style="font-size:10px;text-transform:uppercase;letter-spacing:.9px;color:#A0ABBA;font-weight:600;margin-bottom:3px;">Location</div><div style="font-size:13px;font-weight:500;color:#1A2B3C;">${esc(f.location)}</div></div>` : ''}
+            ${f.service  ? `<div><div style="font-size:10px;text-transform:uppercase;letter-spacing:.9px;color:#A0ABBA;font-weight:600;margin-bottom:3px;">Service</div><div style="font-size:13px;font-weight:500;color:#1A2B3C;">${esc(f.service)}</div></div>` : ''}
+            ${dt ? `<div><div style="font-size:10px;text-transform:uppercase;letter-spacing:.9px;color:#A0ABBA;font-weight:600;margin-bottom:3px;">Date &amp; Time</div><div style="font-size:13px;font-weight:500;color:#1A2B3C;">${esc(dt)}</div></div>` : ''}
+            <div><div style="font-size:10px;text-transform:uppercase;letter-spacing:.9px;color:#A0ABBA;font-weight:600;margin-bottom:3px;">Occurrences</div><div style="font-size:13px;font-weight:500;color:#1A2B3C;">${pairCount}&times; duplicate</div></div>
+            ${by ? `<div><div style="font-size:10px;text-transform:uppercase;letter-spacing:.9px;color:#A0ABBA;font-weight:600;margin-bottom:3px;">Booked By</div><div style="font-size:13px;font-weight:500;color:#1A2B3C;">${esc(by)}</div></div>` : ''}
           </div>
-        </td>
-      </tr>
-      ${dt  ? `<tr><td style="padding:5px 16px 5px 28px; color:#555; font-weight:600; font-size:13px; width:120px;">Date &amp; Time</td><td style="padding:5px 16px; color:#222; font-size:13px; font-weight:600;">${esc(dt)}</td></tr>` : ''}
-      ${ids ? `<tr style="background:#fff8f8;"><td style="padding:5px 16px 5px 28px; color:#555; font-weight:600; font-size:13px;">Appointment IDs</td><td style="padding:5px 16px; font-family:monospace; color:#b71c1c; font-size:13px;">${esc(ids)}</td></tr>` : ''}
-      <tr><td style="padding:5px 16px 5px 28px; color:#555; font-weight:600; font-size:13px;">Issue</td><td style="padding:5px 16px; color:#b71c1c; font-size:13px;">Same provider booked for same date/time twice</td></tr>
-      ${by  ? `<tr style="background:#fff8f8;"><td style="padding:5px 16px 5px 28px; color:#555; font-weight:600; font-size:13px;">Booked By</td><td style="padding:5px 16px; color:#222; font-size:13px;">${esc(by)}</td></tr>` : ''}
-      ${!dt && raw ? `<tr><td colspan="2" style="padding:5px 16px 5px 28px; font-family:monospace; font-size:12px; color:#444;">${esc(raw)}</td></tr>` : ''}`;
+          ${idChips ? `
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+                      padding-top:12px;border-top:1px dashed #E8ECF1;">
+            <span style="font-size:10px;text-transform:uppercase;letter-spacing:.9px;color:#A0ABBA;font-weight:600;white-space:nowrap;">Slot IDs</span>
+            ${idChips}
+          </div>` : ''}
+          ${!dt && !ids && raw ? `<div style="font-family:'Courier New',Courier,monospace;font-size:12px;color:#555;white-space:pre-wrap;">${esc(raw.substring(0, 400))}</div>` : ''}
+        </div>`;
         }).join('')
-        : `<tr><td colspan="2" style="padding:10px 16px; font-family:monospace; font-size:12px;
-             color:#555; white-space:pre-wrap;">${esc(f.raw.substring(0, 600))}</td></tr>`;
+        : `<div style="padding:16px 18px;font-family:'Courier New',Courier,monospace;font-size:12px;color:#555;white-space:pre-wrap;">${esc(f.raw.substring(0, 500))}</div>`;
 
     return `
-  <!-- Client ${i + 1} -->
-  <div style="margin-bottom:24px; border:1px solid #d0d0d0; border-top:3px solid #b71c1c;
-              border-radius:4px; overflow:hidden; font-family:Arial,sans-serif;">
-
-    <!-- Client title bar -->
-    <div style="background:#f5f5f5; padding:10px 16px; border-bottom:1px solid #d0d0d0;">
-      <span style="font-size:11px; color:#888; letter-spacing:0.5px;">CLIENT ${i + 1} OF ${failures.length}</span>
-      <span style="font-size:15px; font-weight:700; color:#222; margin-left:10px;">${esc(f.title || 'Unknown Client')}</span>
-    </div>
-
-    <!-- Meta info -->
-    <table width="100%" cellpadding="0" cellspacing="0"
-           style="border-collapse:collapse; font-size:13px; border-bottom:1px solid #e0e0e0;">
-      ${metaRows}
-    </table>
-
-    <!-- Duplicate slots -->
-    <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+    <div style="background:#FFFFFF;border:1px solid #DDE2E9;border-radius:8px;overflow:hidden;margin-bottom:14px;">
+      <div style="background:#FEF2F2;border-bottom:1px solid #FECACA;padding:13px 18px;display:flex;align-items:center;gap:12px;">
+        <span style="font-size:14px;font-weight:600;color:#991B1B;flex:1;">${esc(f.title || 'Unknown Client')}</span>
+        <span style="background:#C0392B;color:white;font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;white-space:nowrap;">${pairCount} duplicate${pairCount !== 1 ? 's' : ''} found</span>
+      </div>
       ${slotRows}
-    </table>
-
-    <!-- Action required -->
-    <div style="background:#fff8e1; border-top:1px solid #ffe082; padding:10px 16px;">
-      <span style="font-weight:700; color:#e65100; font-size:13px;">ACTION REQUIRED</span>
-      <span style="color:#333; font-size:13px; margin-left:8px;">
-        Contact <strong>${esc(f.title || 'the client')}</strong> administrator to resolve
-        ${pairCount} overlapping appointment${pairCount !== 1 ? 's' : ''} immediately.
-      </span>
-    </div>
-  </div>`;
+    </div>`;
 }).join('');
 
-// All-clear card
-const allClear = failures.length === 0 ? `
-  <div style="background:#e8f5e9; border:1px solid #a5d6a7; border-radius:4px;
-              padding:20px; text-align:center; font-family:Arial,sans-serif;">
-    <div style="font-size:15px; font-weight:700; color:#1b5e20;">All ${totalChecked} clients checked — no duplicate slots found.</div>
-    <div style="font-size:13px; color:#555; margin-top:4px;">System is operating normally.</div>
-  </div>` : '';
+// ── Clear clients list ────────────────────────────────────────────────────────
+
+const clearClientNames = results.suites
+    ?.flatMap(s => s.suites ?? [])
+    .filter(s => !failures.find(f => f.title === s.title))
+    .map(s => s.title)
+    .filter(Boolean) ?? [];
+
+const clearRows = clearClientNames.length > 0
+    ? clearClientNames.map(name => `
+    <div style="display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid #F0F2F5;">
+      <div style="width:8px;height:8px;border-radius:50%;background:#16A34A;flex-shrink:0;"></div>
+      <span style="font-size:13px;color:#374151;font-weight:500;flex:1;">${esc(name)}</span>
+      <span style="font-size:11px;font-weight:600;color:#16A34A;letter-spacing:.3px;">Clear</span>
+    </div>`).join('')
+    : '';
+
+// ── All-clear body ────────────────────────────────────────────────────────────
+
+const allClearBody = !hasIssues ? `
+    <div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:8px;padding:24px;text-align:center;">
+      <div style="font-size:16px;font-weight:700;color:#15803D;margin-bottom:6px;">All ${totalChecked} clients checked — no duplicates found.</div>
+      <div style="font-size:13px;color:#166534;">System is operating normally.</div>
+    </div>` : '';
+
+// ── Full HTML ─────────────────────────────────────────────────────────────────
 
 const html = `<!DOCTYPE html>
 <html lang="en">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Slot Duplicate Check</title></head>
-<body style="margin:0; padding:0; background:#eeeeee; font-family:Arial,sans-serif;">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Appointment Slot Alert — setter.layline.live</title>
+</head>
+<body style="margin:0;padding:40px 16px 72px;background:#EEF1F5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;color:#1A2B3C;-webkit-font-smoothing:antialiased;">
 
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#eeeeee;">
-<tr><td align="center" style="padding:24px 12px;">
-<table width="660" cellpadding="0" cellspacing="0"
-       style="background:#ffffff; border-radius:5px; overflow:hidden;
-              box-shadow:0 2px 6px rgba(0,0,0,0.10);">
+<div style="max-width:660px;margin:0 auto;">
 
   <!-- Header -->
-  <tr>
-    <td style="background:${headerBg}; padding:18px 24px;">
-      <div style="color:#fff; font-size:16px; font-weight:700; letter-spacing:0.5px;">
-        ${status}
+  <div style="background:#0F1F2E;border-radius:10px 10px 0 0;padding:28px 32px 26px;display:flex;align-items:center;gap:18px;">
+    <div style="width:44px;height:44px;background:${hasIssues ? '#C0392B' : '#16A34A'};border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:22px;line-height:1;">
+      ${hasIssues ? '⚠' : '✓'}
+    </div>
+    <div>
+      <div style="font-family:Georgia,'Times New Roman',serif;font-size:20px;font-weight:normal;color:#FFFFFF;letter-spacing:-.2px;">
+        ${hasIssues ? 'Duplicate Appointment Slots Detected' : 'No Duplicate Slots Found'}
       </div>
-      <div style="color:rgba(255,255,255,0.80); font-size:12px; margin-top:5px;">
-        Production Slot Integrity Check &nbsp;|&nbsp; setter.layline.live
+      <div style="margin-top:6px;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.45);font-weight:500;">
+        Production &mdash; setter.layline.live &nbsp;&bull;&nbsp; ${esc(RUN_DATE)}
       </div>
-    </td>
-  </tr>
+    </div>
+  </div>
 
-  <!-- Summary -->
-  <tr>
-    <td style="border-bottom:2px solid #e0e0e0;">
-      <div style="padding:14px 24px 6px; font-size:11px; font-weight:700;
-                  color:#888; letter-spacing:1px; text-transform:uppercase;">
-        Summary
-      </div>
-      <div style="padding:0 24px 14px;">
-        ${summaryBlock}
-      </div>
-    </td>
-  </tr>
+  <!-- Stats bar -->
+  <div style="background:#FFFFFF;border-left:1px solid #DDE2E9;border-right:1px solid #DDE2E9;display:grid;grid-template-columns:repeat(3,1fr);">
+    <div style="padding:20px 24px;border-right:1px solid #DDE2E9;">
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#8A96A3;font-weight:600;">Clients Checked</div>
+      <div style="font-size:32px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1;margin-top:6px;color:#1A2B3C;">${totalChecked}</div>
+    </div>
+    <div style="padding:20px 24px;border-right:1px solid #DDE2E9;">
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#8A96A3;font-weight:600;">With Duplicates</div>
+      <div style="font-size:32px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1;margin-top:6px;color:${hasIssues ? '#C0392B' : '#1A2B3C'};">${failures.length}</div>
+    </div>
+    <div style="padding:20px 24px;">
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#8A96A3;font-weight:600;">No Issues</div>
+      <div style="font-size:32px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1;margin-top:6px;color:#16A34A;">${clientsOk}</div>
+    </div>
+  </div>
 
   <!-- Body -->
-  <tr>
-    <td style="padding:20px 24px;">
-      ${allClear}
-      ${clientSections}
+  <div style="background:#F5F7FA;border:1px solid #DDE2E9;border-top:2px solid ${hasIssues ? '#C0392B' : '#16A34A'};border-radius:0 0 10px 10px;padding:28px 32px 36px;">
 
-      ${runUrl ? `
-      <div style="text-align:center; margin-top:8px; padding-top:16px; border-top:1px solid #e0e0e0;">
-        <a href="${runUrl}"
-           style="display:inline-block; background:#1565c0; color:#ffffff;
-                  padding:9px 26px; border-radius:4px; text-decoration:none;
-                  font-size:13px; font-weight:600;">
-          View Full Run on GitHub Actions
-        </a>
-      </div>` : ''}
-    </td>
-  </tr>
+    ${hasIssues ? `
+    <div style="font-size:10px;text-transform:uppercase;letter-spacing:1.2px;font-weight:700;color:#8A96A3;margin-bottom:14px;">Affected Clients</div>
+    ${clientCards}
+    ${clearRows ? `
+    <div style="height:1px;background:#DDE2E9;margin:24px 0;"></div>
+    <div style="font-size:10px;text-transform:uppercase;letter-spacing:1.2px;font-weight:700;color:#8A96A3;margin-bottom:14px;">Clients with No Issues</div>
+    <div style="background:#FFFFFF;border:1px solid #DDE2E9;border-radius:8px;overflow:hidden;">
+      ${clearRows}
+    </div>` : ''}
 
-  <!-- Footer -->
-  <tr>
-    <td style="background:#f5f5f5; border-top:1px solid #e0e0e0;
-               padding:10px 24px; text-align:center;">
-      <div style="font-size:11px; color:#aaa;">
-        Automated check runs every 30 minutes &nbsp;|&nbsp; Playwright &nbsp;|&nbsp; GitHub Actions
+    <!-- Action Required -->
+    <div style="background:#FFFBEB;border:1px solid #FCD34D;border-left:4px solid #F59E0B;border-radius:6px;padding:16px 18px;margin-top:24px;">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;font-weight:700;color:#92400E;margin-bottom:7px;">Action Required</div>
+      <div style="font-size:13px;color:#78350F;line-height:1.65;">
+        Check Talend job logs and remove the duplicate slot records immediately to prevent patients from double-booking the same appointment time. Use the Slot IDs above to locate and delete the duplicate entries.
       </div>
-    </td>
-  </tr>
+    </div>` : allClearBody}
 
-</table>
-</td></tr>
-</table>
+    <!-- Footer -->
+    <div style="margin-top:28px;display:flex;align-items:center;justify-content:center;gap:8px;font-size:12px;color:#A0ABBA;letter-spacing:.2px;">
+      <div style="width:7px;height:7px;border-radius:50%;background:#16A34A;flex-shrink:0;"></div>
+      Production slot checker runs automatically every 30 minutes
+    </div>
+
+  </div>
+
+</div>
 
 </body>
 </html>`;
