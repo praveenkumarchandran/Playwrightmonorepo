@@ -4,12 +4,12 @@ on:
   schedule:
     # Every 30 minutes — Talend generates slots every 15 min, 30 min gives buffer
     - cron: "*/30 * * * *"
-  workflow_dispatch:  # Manual trigger
+  workflow_dispatch: # Manual trigger
 
 jobs:
   check-duplicates:
     runs-on: ubuntu-latest
-    timeout-minutes: 60   # Hopemark checks 6 locations × 2 services — needs more time
+    timeout-minutes: 60 # Hopemark checks 6 locations × 2 services — needs more time
 
     steps:
       - uses: actions/checkout@v4
@@ -57,7 +57,7 @@ jobs:
           server_port: 465
           username: ${{ secrets.MAIL_USERNAME }}
           password: ${{ secrets.MAIL_PASSWORD }}
-          subject: "⚠️ DUPLICATE SLOTS DETECTED on Production — ${{ github.run_id }}"
-          to: praveen.c@jseven.in
+          subject: "DUPLICATE SLOTS DETECTED on Production — ${{ github.run_id }}"
+          to: praveen.c@jseven.in, kkropp@layline.live, msrinivasan@layline.live
           from: GitHub Actions
           html_body: file://slot-check-email.html
