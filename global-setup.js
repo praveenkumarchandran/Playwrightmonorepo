@@ -6,25 +6,35 @@ dotenv.config();
 
 async function globalSetup() {
     console.log('Start with global setup');
+    console.log('ADMIN_EMAIL:', process.env.ADMIN_EMAIL);
 
     const browser = await chromium.launch({ headless: true });
-    const context = await browser.newContext();
-    const page = await context.newPage();
 
-    await page.goto('https://stage.setter.layline.live/login');
+    let context, page, postLoginUrl;
+    const MAX_ATTEMPTS = 3;
 
-    await page.getByPlaceholder('Email').fill(process.env.ADMIN_EMAIL);
-    await page.getByPlaceholder('Password').fill(process.env.ADMIN_PASSWORD);
+    for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+        context = await browser.newContext();
+        page    = await context.newPage();
 
-    console.log(process.env.ADMIN_EMAIL);
-    console.log(process.env.ADMIN_PASSWORD);
+        await page.goto('https://stage.setter.layline.live/login');
+        await page.getByPlaceholder('Email').fill(process.env.ADMIN_EMAIL);
+        await page.getByPlaceholder('Password').fill(process.env.ADMIN_PASSWORD);
+        await page.getByRole('button', { name: 'Sign In' }).click();
 
-    await page.getByRole('button', { name: 'Sign In' }).click();
-    // Wait for the login redirect to complete before capturing cookies.
-    // The portal redirects away from /login on success — any other URL means auth succeeded.
-    await page.waitForURL(url => !url.pathname.includes('/login'), { timeout: 60_000 });
-    const postLoginUrl = page.url();
-    console.log('Post-login URL:', postLoginUrl);
+        try {
+            // The portal redirects away from /login on success.
+            await page.waitForURL(url => !url.pathname.includes('/login'), { timeout: 60_000 });
+            postLoginUrl = page.url();
+            console.log(`Login succeeded on attempt ${attempt}. Post-login URL:`, postLoginUrl);
+            break;
+        } catch (err) {
+            console.log(`Login attempt ${attempt}/${MAX_ATTEMPTS} timed out: ${err.message}`);
+            await context.close();
+            if (attempt === MAX_ATTEMPTS) throw new Error(`Admin login failed after ${MAX_ATTEMPTS} attempts`);
+            await new Promise(r => setTimeout(r, 5_000));
+        }
+    }
 
     await context.storageState({ path: 'admin-auth.json' });
 

@@ -56,7 +56,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        project: [siny-medical, siny-cosmetic, siny-widget-stage, clarus-widget, clarus, tndi]
+        project:
+          [
+            siny-medical,
+            siny-cosmetic,
+            siny-widget-stage,
+            clarus-widget,
+            clarus,
+            tndi,
+          ]
     steps:
       - uses: actions/checkout@v4
 
@@ -79,6 +87,8 @@ jobs:
           eval $CMD
         env:
           CI: true
+          ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
 
       - uses: actions/upload-artifact@v4
         if: always()
@@ -124,6 +134,8 @@ jobs:
           eval $CMD
         env:
           CI: true
+          ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
 
       - uses: actions/upload-artifact@v4
         if: always()
@@ -164,9 +176,9 @@ jobs:
         run: |
           if [ "${{ needs.test-core.result }}" == "success" ] && \
              [ "${{ needs.test-full.result }}" != "failure" ]; then
-            echo "status=✅ All tests passed" >> $GITHUB_OUTPUT
+            echo "status= All tests passed" >> $GITHUB_OUTPUT
           else
-            echo "status=❌ Some tests FAILED" >> $GITHUB_OUTPUT
+            echo "status= Some tests FAILED" >> $GITHUB_OUTPUT
           fi
 
       - name: Send detailed email notification
