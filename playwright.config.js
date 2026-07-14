@@ -115,17 +115,75 @@ export default defineConfig({
             retries: 1,
         },
 
-        // ── SINY Widget ───────────────────────────────────────────────────────
+        // ── SINY Widget (staging) ─────────────────────────────────────────────
         // Flow: Widget (filters + calendar + slot) → Intake → Insurance → Add Info
-        // fullyParallel: true — all tests in the single spec file run in parallel
+        // workers: 1 — 50+ tests call completeWidgetToInsurance; even workers: 2 caused
+        // APPT04-06 to race with other describe blocks booking the same first slot (9:20 AM),
+        // leaving the loser with an empty session on the insurance page.
         {
-            name: 'siny-widget',
+            name: 'siny-widget-stage',
             testDir: './tests/e2e/widget',
+            testMatch: /sinyWidget\.spec\.js/,
             timeout: 240_000,   // 4 min — full flow + slow locations need extra time
+            fullyParallel: true,
+            workers: 2,
+            retries: 1,
+            use: {
+                actionTimeout: 25_000,  // Florida/Forest Hills dropdowns can be slow on staging
+            },
+        },
+
+        // ── SINY Widget (production) ──────────────────────────────────────────
+        {
+            name: 'siny-widget-prod',
+            testDir: './tests/e2e/widget',
+            testMatch: /sinyWidget\.spec\.js/,
+            timeout: 300_000,   // 5 min — production can be slower than staging
+            fullyParallel: true,
+            workers: 1,
+            retries: 1,
+            use: {
+                actionTimeout: 30_000,
+            },
+            env: { SETTER_BASE_URL: 'https://setter.layline.live' },
+        },
+
+        // ── Clarus Widget ─────────────────────────────────────────────────────
+        // Flow: Widget (Patient Type + Location + Service Type + Calendar) → Insurance → Add Info
+        // No intake step. Insurance uses MUI Select with Self-pay pre-selected.
+        {
+            name: 'clarus-widget',
+            testDir: './tests/e2e/widget',
+            testMatch: /clarusWidget\.spec\.js/,
+            timeout: 240_000,
             fullyParallel: true,
             retries: 0,
             use: {
-                actionTimeout: 25_000,  // Florida/Forest Hills dropdowns can be slow on staging
+                actionTimeout: 25_000,
+            },
+        },
+
+        // ── Hopemark Widget (PRODUCTION) ──────────────────────────────────────
+        // Widget: https://setter.layline.live/hopemarkhealth/1/oakbrook/widget?widgetId=2
+        // Embedded at: hopemarkheath.com/outpatient-psychiatry-clinic/oak-brook/#schedule
+        // Dropdowns: Patient Type | Visit Reason  (no Location, no calendar)
+        // Slots: combined date+time card buttons + Show More
+        // Flow: Widget → (slot + Schedule Appointment | Show More → FA) → Intake → Insurance → Add Info
+        // workers: 1 — the production widget always surfaces the SAME first slot
+        // (appointmentid=52268996, 8:00 AM Wed Jul 8). Two concurrent workers would
+        // both commit insurance for the same appointmentid, causing a server conflict
+        // and a waitForURL timeout on the second worker. Sequential is the only safe option.
+        {
+            name: 'hopemark-widget',
+            testDir: './tests/e2e/widget',
+            testMatch: /hopemarkWidget\.spec\.js/,
+            timeout: 300_000,   // 5 min — widget + intake + insurance chain is long
+            fullyParallel: true,
+            workers: 1,
+            retries: 1,
+            use: {
+                baseURL: 'https://setter.layline.live',  // production
+                actionTimeout: 30_000,
             },
         },
 
@@ -133,8 +191,10 @@ export default defineConfig({
         {
             name: 'admin',
             testDir: './tests/e2e/admin',
+            timeout: 60_000,
+            workers: 1,
             use: {
-                storageState: 'tests/.auth/admin-state.json',
+                storageState: 'admin-auth.json',
             },
         },
 

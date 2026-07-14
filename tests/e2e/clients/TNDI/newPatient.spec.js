@@ -33,7 +33,7 @@ import { runStepperCases }              from '../../shared/stepper.cases.js';
 import { runBrowserBackCases }          from '../../shared/browserBack.cases.js';
 import { runPageRefreshCases }          from '../../shared/pageRefresh.cases.js';
 import { runDirectUrlCases }            from '../../shared/directUrl.cases.js';
-import { runInsurancePageSummaryCases, runPatientPageSummaryCases } from '../../shared/appointmentSummary.cases.js';
+import { runInsurancePageSummaryCases, runPatientPageSummaryCases, runIntakePageSummaryCases } from '../../shared/appointmentSummary.cases.js';
 import { CLIENTS }                      from '../../../config/clients.js';
 
 const { test, expect } = makeNewPatientFixtures('TNDI');
@@ -70,6 +70,15 @@ runInsuranceCases(test, expect, {
     hasTakePicture:              false,   // File upload built into form
     canCompletePrivateInsurance: false,   // Plan field required — blocks navigation
     errorSelector:               ':text-matches("is required|required", "i")',
+});
+
+// ── Appointment summary — intake page (step 3) ───────────────────────────────
+// Verifies the "Your Appointment" left panel is populated when the intake page loads.
+// Screenshot confirmed: Location, Location Address, Appointment Time, Appointment Type
+// are all visible on the intake questions page before the form is submitted.
+runIntakePageSummaryCases(test, expect, {
+    expectedLocation: 'The Nerve and Disc Institute Farmington',
+    expectedAddress:  '24100 Drake Rd',
 });
 
 // ── Appointment summary — insurance page (after slot selection) ───────────────

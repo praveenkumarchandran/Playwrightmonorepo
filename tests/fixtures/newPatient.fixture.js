@@ -28,6 +28,33 @@ import { FindAppointmentPage }    from '../../pages/FindAppointmentPage.js';
  * @param {keyof typeof CLIENTS} clientKey
  * @returns {{ test: import('@playwright/test').TestType, expect: typeof expect }}
  */
+/**
+ * Prints a clear context block before each test so CI output immediately shows
+ * which client/URL/service failed — no guessing from test IDs alone.
+ *
+ * Example output:
+ *   ┌─ Test context ─────────────────────────────────────────────
+ *   │  Client  : SINY Dermatology (Medical)  [siny-medical]
+ *   │  URL     : stage.setter.layline.live/…/landing
+ *   │  Service : Skin Problem → Acne
+ *   │  Flow    : landing → intake → slotPick → insurance → patientInfo
+ *   └────────────────────────────────────────────────────────────
+ */
+function logClientContext(client, clientKey, testInfo) {
+    const url     = client.url.replace('https://', '').replace('http://', '');
+    const service = [client.reason, client.serviceType].filter(Boolean).join(' → ');
+    const flow    = (client.newPatientFlow ?? []).join(' → ');
+    const line    = '─'.repeat(56);
+    console.log(`\n┌─ Test context ${line.substring(15)}`);
+    console.log(`│  Client  : ${client.name}  [${clientKey.toLowerCase().replace('_','-')}]`);
+    console.log(`│  URL     : ${url}`);
+    if (service) console.log(`│  Service : ${service}`);
+    if (client.defaultInsurance) console.log(`│  Insurance: ${client.defaultInsurance}`);
+    console.log(`│  Flow    : ${flow}`);
+    console.log(`│  Test    : ${testInfo.title}`);
+    console.log(`└${line}`);
+}
+
 export function makeNewPatientFixtures(clientKey) {
     const client = CLIENTS[clientKey];
 
@@ -41,7 +68,8 @@ export function makeNewPatientFixtures(clientKey) {
 
         // ── landingPage — navigates to the client URL, returns LandingPage object ──
         // Used for tests that interact only with the landing page (e.g. gray-service flow).
-        landingPage: async ({ page }, use) => {
+        landingPage: async ({ page }, use, testInfo) => {
+            logClientContext(client, clientKey, testInfo);
             const landing = new LandingPage(page);
             await landing.open(client.url);  // open() now includes the content-ready wait
             await use(landing);
@@ -50,6 +78,7 @@ export function makeNewPatientFixtures(clientKey) {
         // ── intakePage — arrives AT the intake page without filling it ───────
         // Runs all steps before intake; platform auto-navigates to intake.
         intakePage: async ({ page }, use, testInfo) => {
+            logClientContext(client, clientKey, testInfo);
             if (!flow.includes('intake')) {
                 throw new Error(`Client "${clientKey}" has no intake step.`);
             }
@@ -75,6 +104,7 @@ export function makeNewPatientFixtures(clientKey) {
         // platform to auto-navigate to the insurance page.
         // BUG FIXED: previously called runFlow twice, which re-ran landing → re-booked slot.
         insurancePage: async ({ page }, use, testInfo) => {
+            logClientContext(client, clientKey, testInfo);
             if (!flow.includes('insurance')) {
                 throw new Error(`Client "${clientKey}" has no insurance step.`);
             }
@@ -148,6 +178,7 @@ export function makeNewPatientFixtures(clientKey) {
         // Uses { browser } (not { page }) so MUI component detection matches
         // the worker-scoped fixture's behaviour exactly.
         patientInfoPage: async ({ browser }, use, testInfo) => {
+            logClientContext(client, clientKey, testInfo);
             const context = await browser.newContext();
             const page    = await context.newPage();
             try {

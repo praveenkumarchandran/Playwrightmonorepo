@@ -1,7 +1,7 @@
 /**
  * SHARED APPOINTMENT SUMMARY PANEL TEST CASES
  *
- * The "Your Appointment" panel appears on the left of insurance and patient info pages.
+ * The "Your Appointment" panel appears on the left of intake, insurance, and patient info pages.
  * It confirms all the values selected earlier carried through correctly:
  *
  *   Your Appointment
@@ -196,6 +196,145 @@ export function runPatientPageSummaryCases(test, expect, opts = {}) {
             test(`TC-APPT-PI-09 — Location Address value shows "${expectedAddress}"`, async ({ patientPage }) => {
                 await expect(
                     patientPage.page.getByText(expectedAddress, { exact: false }).first()
+                ).toBeVisible({ timeout: 10_000 });
+            });
+        }
+
+    });
+}
+
+// ── Intake page variant ───────────────────────────────────────────────────────
+// Verifies the "Your Appointment" panel is fully populated on the INTAKE page
+// (step 3 in TNDI: Location → Choose Date & Time → Intake Questions → ...).
+// Uses intakePage fixture — page stopped at intake, form not yet submitted.
+
+export function runIntakePageSummaryCases(test, expect, opts = {}) {
+    const {
+        expectedAppointmentType = null,
+        expectedLocation        = null,
+        expectedAddress         = null,
+    } = opts;
+
+    test.describe('Appointment summary panel — intake page', () => {
+
+        // WHY: The "Your Appointment" panel must be present on the intake page.
+        // If missing → the panel component failed to render or was accidentally removed.
+        // The patient needs to see their booking details while filling the intake form.
+        test('TC-APPT-INT-01 — "Your Appointment" heading is visible on intake page', async ({ intakePage }) => {
+            await expect(
+                intakePage.page.getByText(/Your Appointment/i).first(),
+                '"Your Appointment" panel heading not found on intake page — ' +
+                'the summary panel failed to render. Patient cannot see their booking details.'
+            ).toBeVisible({ timeout: 10_000 });
+        });
+
+        // WHY: The "Appointment Time" label must appear in the left panel on the intake page.
+        // If missing → the time section was dropped from the panel, meaning the patient
+        // cannot confirm WHEN their appointment is while answering intake questions.
+        test('TC-APPT-INT-02 — "Appointment Time" label is visible on intake page', async ({ intakePage }) => {
+            await expect(
+                intakePage.page.getByText(/Appointment Time/i).first(),
+                '"Appointment Time" label missing from intake page summary panel — ' +
+                'the patient cannot see their scheduled time while filling the intake form.'
+            ).toBeVisible({ timeout: 10_000 });
+        });
+
+        // WHY: The "Appointment Type" label must appear in the left panel on the intake page.
+        // If missing → the appointment type section was removed from the panel UI.
+        test('TC-APPT-INT-03 — "Appointment Type" label is visible on intake page', async ({ intakePage }) => {
+            await expect(
+                intakePage.page.getByText(/Appointment Type/i).first(),
+                '"Appointment Type" label missing from intake page summary panel — ' +
+                'the appointment type section was removed or failed to render.'
+            ).toBeVisible({ timeout: 10_000 });
+        });
+
+        // WHY: The Appointment Type VALUE must NOT be empty on the intake page.
+        // If empty → the app failed to carry the selected service type into the intake step.
+        // The patient and admin cannot confirm what type of appointment is being booked.
+        // BUG: Currently failing — value is "" when it should show the appointment type
+        // (e.g. "Teleconsultation"). Fix: ensure the appointment type is passed to the
+        // intake page panel from the slot selection step.
+        test('TC-APPT-INT-03b — Appointment Type value is filled (not empty) on intake page', async ({ intakePage }) => {
+            const panelText = await intakePage.page.locator('text=/Your Appointment/i')
+                .locator('..').locator('..').innerText().catch(() => '');
+            const lines = panelText.split('\n').map(l => l.trim()).filter(Boolean);
+            const apptTypeIdx = lines.findIndex(l => /Appointment Type/i.test(l));
+            const valueAfterLabel = lines[apptTypeIdx + 1] ?? '';
+            console.log(`  Appointment Type value on intake page: "${valueAfterLabel}"`);
+            expect(
+                valueAfterLabel.length,
+                `Appointment Type value is EMPTY on intake page. ` +
+                `Expected a value (e.g. "Teleconsultation") but got "". ` +
+                `Root cause: the appointment type selected on the slot page is not being ` +
+                `passed through to the intake page summary panel.`
+            ).toBeGreaterThan(0);
+        });
+
+        // WHY: The Appointment Time value must show a real time (e.g. "9:15 AM").
+        // If missing → the selected time was not carried through to the intake page panel.
+        // The patient cannot confirm their appointment time while filling intake questions.
+        test('TC-APPT-INT-04 — Appointment Time value shows a real time (AM/PM)', async ({ intakePage }) => {
+            await expect(
+                intakePage.page.getByText(/\d{1,2}:\d{2}\s*(AM|PM)/i).first(),
+                'No valid time (AM/PM format) found on intake page summary panel — ' +
+                'the appointment time selected during slot picking was not carried through.'
+            ).toBeVisible({ timeout: 10_000 });
+        });
+
+        if (expectedAppointmentType) {
+            // WHY: When the app is fixed, the appointment type value must match the expected service.
+            // If wrong → the appointment type shown is different from what the patient selected.
+            test(`TC-APPT-INT-05 — Appointment Type shows "${expectedAppointmentType}"`, async ({ intakePage }) => {
+                await expect(
+                    intakePage.page.getByText(expectedAppointmentType, { exact: false }).first(),
+                    `Expected Appointment Type to show "${expectedAppointmentType}" but it is not visible. ` +
+                    `The wrong service type may be displayed in the intake page summary panel.`
+                ).toBeVisible({ timeout: 10_000 });
+            });
+        }
+
+        if (expectedLocation) {
+            // WHY: The "Location" label must appear in the panel.
+            // If missing → the location section was removed from the intake page panel UI.
+            test('TC-APPT-INT-06 — "Location" label is visible on intake page', async ({ intakePage }) => {
+                await expect(
+                    intakePage.page.getByText('Location', { exact: true }).first(),
+                    '"Location" label missing from intake page summary panel — ' +
+                    'the location section failed to render. Patient cannot confirm their clinic.'
+                ).toBeVisible({ timeout: 10_000 });
+            });
+
+            // WHY: The Location value must show the correct clinic name.
+            // If wrong → the patient is seeing a different location than they selected.
+            test(`TC-APPT-INT-07 — Location value shows "${expectedLocation}"`, async ({ intakePage }) => {
+                await expect(
+                    intakePage.page.getByText(expectedLocation, { exact: false }).first(),
+                    `Expected Location to show "${expectedLocation}" but it is not visible. ` +
+                    `The clinic name may have changed or the wrong location is being displayed.`
+                ).toBeVisible({ timeout: 10_000 });
+            });
+        }
+
+        if (expectedAddress) {
+            // WHY: The "Location Address" label must appear in the panel.
+            // If missing → the address section was removed from the intake page panel UI.
+            test('TC-APPT-INT-08 — "Location Address" label is visible on intake page', async ({ intakePage }) => {
+                await expect(
+                    intakePage.page.getByText(/Location Address/i).first(),
+                    '"Location Address" label missing from intake page summary panel — ' +
+                    'the address section failed to render.'
+                ).toBeVisible({ timeout: 10_000 });
+            });
+
+            // WHY: The address value must match the clinic address.
+            // If wrong → patient may travel to the wrong location.
+            test(`TC-APPT-INT-09 — Location Address value shows "${expectedAddress}"`, async ({ intakePage }) => {
+                await expect(
+                    intakePage.page.getByText(expectedAddress, { exact: false }).first(),
+                    `Expected address "${expectedAddress}" not found on intake page summary panel. ` +
+                    `The clinic address may have changed or the wrong location data is being displayed. ` +
+                    `A wrong address here means the patient could travel to the wrong clinic.`
                 ).toBeVisible({ timeout: 10_000 });
             });
         }

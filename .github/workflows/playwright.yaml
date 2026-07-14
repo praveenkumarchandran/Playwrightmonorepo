@@ -23,7 +23,8 @@ on:
           - all
           - siny-medical
           - siny-cosmetic
-          - siny-widget
+          - siny-widget-stage
+          - clarus-widget
           - tndi
           - clarus
           - hopemark
@@ -46,7 +47,8 @@ jobs:
       inputs.project == 'all' ||
       inputs.project == 'siny-medical' ||
       inputs.project == 'siny-cosmetic' ||
-      inputs.project == 'siny-widget' ||
+      inputs.project == 'siny-widget-stage' ||
+      inputs.project == 'clarus-widget' ||
       inputs.project == 'clarus' ||
       inputs.project == 'tndi'
     runs-on: ubuntu-latest
@@ -54,7 +56,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        project: [siny-medical, siny-cosmetic, siny-widget, clarus, tndi]
+        project: [siny-medical, siny-cosmetic, siny-widget-stage, clarus-widget, clarus, tndi]
     steps:
       - uses: actions/checkout@v4
 

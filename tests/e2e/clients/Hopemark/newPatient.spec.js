@@ -16,8 +16,10 @@
  * Intake: Conditions multi-select (ADHD, Anxiety, Bipolar, Depression, OCD…)
  *          + "How did you hear about us?" dropdown (NOT on patient info page — it's here).
  *
- * Insurance: Same 5 types. No Take Picture / Manually Enter Details buttons (fields direct).
- *   Next + Skip buttons visible. MUI Select.
+ * Insurance: Plan-based MUI Select — dropdown lists specific insurance plans, not generic types.
+ *   Admin can switch between plan-based (current) and type-based (5 types).
+ *   If config changes to type-based, update defaultInsuranceType + insuranceTypes below.
+ *   No Take Picture / Manually Enter Details buttons (fields direct). Next + Skip visible.
  *
  * Patient Info: Address fields, ONE SMS consent checkbox. No referral (it's in intake).
  *
@@ -70,18 +72,21 @@ runFindAppointmentCases(test, expect, {
 runIntakeCases(test, expect, { intakeType: 'hopemark' });
 
 // ── Insurance ─────────────────────────────────────────────────────────────────
-// Confirmed: same 5 types, MUI Select, no Manual Entry / Take Picture buttons.
-// Next + Skip buttons both visible.
+// Type-based MUI Select (▼ dropdown) — admin currently configured to show generic types.
+// Types confirmed from staging: Self-pay, Medicaid, Medicare, Tricare, Private or Employer Insurance.
+// NOTE: Admin can switch to plan-based config (shows specific plan names instead).
+//   If switched, update defaultInsuranceType and insuranceTypes to actual plan names.
+// No Take Picture / Manually Enter Details buttons — fields appear directly. Next + Skip visible.
 const hopemarkErrorSelector = ':text-matches("to proceed|is required", "i")';
 
 runInsuranceCases(test, expect, {
     insuranceTypes:        ['Medicaid', 'Medicare', 'Tricare', 'Private or Employer Insurance'],
     defaultInsuranceType:  'Private or Employer Insurance',
-    hasInsuranceGating:    false,   // Insurance type is shown, Next always enabled
+    hasInsuranceGating:    false,   // Next always enabled — no type-gating
     hasManualEntryBtn:     false,   // Fields appear directly (no button choice)
-    hasSkipButton:         true,    // Skip button confirmed visible in screenshot
-    hasAutocompleteSearch: false,   // MUI Select, not typed autocomplete
-    hasPlanAutocomplete:   false,   // File upload / direct field — no plan search
+    hasSkipButton:         true,    // Skip button may appear based on admin config (test skips gracefully if absent)
+    hasAutocompleteSearch: false,   // MUI Select (▼ dropdown), not typed autocomplete
+    hasPlanAutocomplete:   false,   // No plan search autocomplete
     hasTakePicture:        false,   // No Take Picture button
     canCompletePrivateInsurance: false,
     errorSelector: hopemarkErrorSelector,

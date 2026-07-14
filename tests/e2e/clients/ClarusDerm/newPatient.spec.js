@@ -81,8 +81,12 @@ runPatientPageSummaryCases(test, expect, {
 //     Currently disabled for Clarus → fields appear directly after type selection.
 //     If admin enables them later, prepareInsuranceForm() self-heals automatically.
 runInsuranceCases(test, expect, {
+    // Type-based config: Self-pay, Medicaid, Medicare, Tricare, Private or Employer Insurance
+    // Plan-based config: Aetna Better Health, Absolute Total Care, Ambetter Medicaid, …
+    // defaultInsuranceType is used by liveNonSelfPayType() — preferred when it exists in the
+    // live dropdown, otherwise first available non-self-pay is used automatically.
     insuranceTypes:        ['Medicaid', 'Medicare', 'Tricare', 'Private or Employer Insurance'],
-    defaultInsuranceType:  'Private or Employer Insurance',
+    defaultInsuranceType:  'Aetna Better Health',
     hasInsuranceGating:    false,   // Confirmed: Next is NOT disabled before type selection
     hasAutocompleteSearch: false,   // MUI Select (▼), same style as SINY
     hasPlanAutocomplete:   false,   // Plan field is MUI Select too — no text search

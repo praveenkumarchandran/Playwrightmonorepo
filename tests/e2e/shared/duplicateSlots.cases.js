@@ -17,6 +17,8 @@
  * @param {string} [service]        — service/reason to check (for logging)
  * @returns {Promise<string[]>}     — duplicate descriptions (empty = clean)
  */
+import { step, failMsg } from '../../utils/testContext.js';
+
 export async function checkForDuplicateSlots(page, findApptUrl, clientName, slotType, service = '') {
     const duplicates = [];
 
@@ -24,35 +26,46 @@ export async function checkForDuplicateSlots(page, findApptUrl, clientName, slot
     // Set up listener BEFORE navigating so we capture the very first API call
     let apiData = null;
 
+    step(`[${clientName}] Registering getProviders response interceptor before navigation`);
     const responseHandler = async (response) => {
         if (!/getProviders|getAllProviders/i.test(response.url())) return;
         if (response.status() !== 200) return;
         try {
             const json = await response.json();
-            if (json && !apiData) apiData = json; // capture first response only
+            if (json && !apiData) {
+                apiData = json; // capture first response only
+                step(`[${clientName}] getProviders API response captured from: ${response.url()}`);
+            }
         } catch { /* ignore */ }
     };
 
     page.on('response', responseHandler);
 
     try {
+        step(`[${clientName}] Navigating directly to findappointment URL${service ? ` (service: ${service})` : ''}: ${findApptUrl}`);
         // Navigate directly — this is what the user sees in a fresh browser
         await page.goto(findApptUrl, { waitUntil: 'networkidle', timeout: 30_000 });
+        console.log(`  [${clientName}] Page loaded — waiting for async slot rendering`);
 
+        step(`[${clientName}] Waiting 2s for async slot loading to complete`);
         // Wait a bit for all async slot loading to complete
         await page.waitForTimeout(2_000);
 
     } finally {
         page.off('response', responseHandler);
+        step(`[${clientName}] Response interceptor removed`);
     }
 
     // ── Check if API response was captured ────────────────────────────────────
     if (apiData) {
         console.log(`  [${clientName}] API response captured — checking all slots at once`);
+        step(`[${clientName}] Parsing API response for duplicate slots`);
         _parseApiResponse(apiData, clientName, duplicates);
 
         if (duplicates.length === 0) {
             console.log(`  [${clientName}] ✅ No duplicates in API response`);
+        } else {
+            console.log(`  [${clientName}] ⚠️  ${duplicates.length} duplicate(s) found in API response`);
         }
         return duplicates;
     }
@@ -60,9 +73,16 @@ export async function checkForDuplicateSlots(page, findApptUrl, clientName, slot
     // ── Fallback: UI-based check (click through each date) ────────────────────
     console.log(`  [${clientName}] No API response captured — using UI date-click fallback`);
 
-    if (slotType === 'clarus')        await _checkClarusStyle(page, duplicates, clientName);
-    else if (slotType === 'datetime') await _checkDatetimeStyle(page, duplicates, clientName);
-    else                              await _checkTndiStyle(page, duplicates, clientName);
+    if (slotType === 'clarus') {
+        step(`[${clientName}] Running Clarus/SINY/CVD UI fallback (provider cards + Show More)`);
+        await _checkClarusStyle(page, duplicates, clientName);
+    } else if (slotType === 'datetime') {
+        step(`[${clientName}] Running Hopemark UI fallback (combined datetime buttons)`);
+        await _checkDatetimeStyle(page, duplicates, clientName);
+    } else {
+        step(`[${clientName}] Running TNDI/Kronson/Freedman UI fallback (date strip + time grid)`);
+        await _checkTndiStyle(page, duplicates, clientName);
+    }
 
     return duplicates;
 }
@@ -94,13 +114,21 @@ function _parseApiResponse(data, clientName, duplicates) {
         byDateTime.get(key).push(slot);
     }
 
+    let dupCount = 0;
     for (const [key, slots] of byDateTime) {
         if (slots.length > 1) {
+            dupCount++;
             const [date, time, providerid] = key.split('|');
             const provider = slots[0]?.locationName ?? slots[0]?.providerid ?? 'Provider';
             duplicates.push(`${provider} | ${date} ${time}: duplicate slot (${slots.length}×, slotIds: ${slots.map(s => s.slotId).join(', ')})`);
             console.log(`  ⚠️  [${clientName}] ${provider} | ${date} ${time}: DUPLICATE (${slots.length}× same slot)`);
         }
+    }
+
+    if (dupCount === 0) {
+        console.log(`  [${clientName}] All ${byDateTime.size} unique date/time/provider key(s) are clean`);
+    } else {
+        console.log(`  [${clientName}] Found ${dupCount} duplicate key(s) across ${byDateTime.size} total date/time/provider key(s)`);
     }
 }
 
@@ -120,6 +148,7 @@ export function collectSlots(node, out) {
  * Exported so the spec can call it after collecting slots from all API responses.
  */
 export function findDuplicatesInSlots(slots, clientName, duplicates) {
+    step(`[${clientName}] Grouping ${slots.length} slot(s) by date/starttime/provider/appointmenttype`);
     const byDateTime = new Map();
 
     for (const slot of slots) {
@@ -133,8 +162,12 @@ export function findDuplicatesInSlots(slots, clientName, duplicates) {
         byDateTime.get(key).push(slot);
     }
 
+    console.log(`  [${clientName}] Grouped into ${byDateTime.size} unique key(s) — scanning for duplicates`);
+
+    let dupCount = 0;
     for (const [key, group] of byDateTime) {
         if (group.length > 1) {
+            dupCount++;
             const [date, time] = key.split('|');
             const provider   = group[0]?._providerName ?? group[0]?.providerid ?? 'Provider';
             const location   = group[0]?.locationName ?? 'Unknown Location';
@@ -152,6 +185,12 @@ export function findDuplicatesInSlots(slots, clientName, duplicates) {
             duplicates.push(msg);
             console.log(`  ⚠️  [${clientName}]\n       ${msg.replace(/ \| /g, '\n       ')}`);
         }
+    }
+
+    if (dupCount === 0) {
+        console.log(`  [${clientName}] ✅ No duplicates — all ${byDateTime.size} key(s) are unique`);
+    } else {
+        console.log(`  [${clientName}] ⚠️  ${dupCount} duplicate key(s) detected across ${byDateTime.size} total key(s)`);
     }
 }
 
@@ -201,6 +240,8 @@ async function _checkClarusStyle(page, duplicates, clientName) {
         return;
     }
 
+    console.log(`  [${clientName}] Found ${cardCount} provider card(s) — iterating each`);
+
     for (let i = 0; i < cardCount; i++) {
         const link = showMoreLinks.nth(i);
         const providerName = await link.evaluate((el, idx) => {
@@ -216,21 +257,26 @@ async function _checkClarusStyle(page, duplicates, clientName) {
             return `Provider ${idx + 1}`;
         }, i).catch(() => `Provider ${i + 1}`);
 
+        step(`[${clientName}] Scrolling to and clicking "Show More" for provider ${i + 1}/${cardCount}: ${providerName}`);
         await link.scrollIntoViewIfNeeded();
         await link.click();
         await page.waitForFunction(
             () => document.body.innerText.includes('More Slots'), { timeout: 10_000 }
         ).catch(() => {});
         await page.waitForTimeout(300);
+        console.log(`  [${clientName}] Provider card expanded — checking dates for: ${providerName}`);
 
         await _clickAllDatesAndCheckTimes(page, providerName, duplicates);
 
         const showLess = page.getByText(/^Show Less$/i).first();
         if (await showLess.isVisible({ timeout: 2_000 }).catch(() => false)) {
+            step(`[${clientName}] Collapsing provider card via "Show Less": ${providerName}`);
             await showLess.click();
             await page.waitForTimeout(200);
         }
     }
+
+    console.log(`  [${clientName}] Clarus-style UI check complete — ${duplicates.length} duplicate(s) found so far`);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -246,16 +292,23 @@ async function _checkTndiStyle(page, duplicates, clientName) {
         console.log(`  [${clientName}] No date buttons — no available slots`);
         return;
     }
+
+    console.log(`  [${clientName}] Found ${dateCount} date button(s) in TNDI-style date strip`);
+    step(`[${clientName}] Clicking through all dates in TNDI-style date strip`);
     await _clickAllDatesAndCheckTimes(page, clientName, duplicates);
+    console.log(`  [${clientName}] TNDI-style UI check complete — ${duplicates.length} duplicate(s) found so far`);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // UI fallback — Hopemark (combined "Wed Jun 4 4:45 PM" datetime buttons)
 // ─────────────────────────────────────────────────────────────────────────────
 async function _checkDatetimeStyle(page, duplicates, clientName) {
+    step(`[${clientName}] Collecting all combined datetime buttons from page`);
     const texts = await page.locator('button')
         .filter({ hasText: /\b(Mon|Tue|Wed|Thu|Fri|Sat|Sun)\b.*\d{1,2}:\d{2}\s*(AM|PM)/i })
         .allTextContents();
+
+    console.log(`  [${clientName}] Found ${texts.length} datetime button(s) — grouping by date`);
 
     const byDate = new Map();
     for (const raw of texts) {
@@ -267,9 +320,13 @@ async function _checkDatetimeStyle(page, duplicates, clientName) {
         byDate.get(date).push(timeMatch[1].trim());
     }
 
+    console.log(`  [${clientName}] Grouped into ${byDate.size} distinct date(s) — scanning for duplicates`);
     for (const [date, times] of byDate) {
+        console.log(`    [${clientName}] ${date}: ${times.length} slot(s) [${times.join(', ')}]`);
         _findDuplicates(times, null, date, duplicates);
     }
+
+    console.log(`  [${clientName}] Datetime-style UI check complete — ${duplicates.length} duplicate(s) found so far`);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -279,6 +336,8 @@ const MAX_DATES = 30;
 
 async function _clickAllDatesAndCheckTimes(page, contextLabel, duplicates) {
     const visited = new Set();
+
+    step(`${contextLabel} | Starting date-strip iteration (max ${MAX_DATES} dates)`);
 
     while (visited.size < MAX_DATES) {
         const visibleDates = page.locator('button')
@@ -293,6 +352,7 @@ async function _clickAllDatesAndCheckTimes(page, contextLabel, duplicates) {
             if (visited.has(dateText)) continue;
             visited.add(dateText);
 
+            step(`${contextLabel} | Clicking date: ${dateText} (${visited.size} of up to ${MAX_DATES})`);
             await visibleDates.nth(i).click();
             await page.waitForTimeout(300);
 
@@ -310,23 +370,39 @@ async function _clickAllDatesAndCheckTimes(page, contextLabel, duplicates) {
         }
 
         if (!clickedAny) {
+            step(`${contextLabel} | No unvisited dates — checking for next-page arrow`);
             const nextArrow = page.locator('button').filter({ hasText: /^[>›»]$/ }).first();
-            if (!await nextArrow.isVisible({ timeout: 2_000 }).catch(() => false)) break;
+            if (!await nextArrow.isVisible({ timeout: 2_000 }).catch(() => false)) {
+                console.log(`    ${contextLabel} | No next-page arrow found — date iteration complete (${visited.size} date(s) visited)`);
+                break;
+            }
             const disabled = await nextArrow.evaluate(b =>
                 b.disabled || b.getAttribute('aria-disabled') === 'true' || b.classList.contains('Mui-disabled')
             ).catch(() => false);
-            if (disabled) break;
+            if (disabled) {
+                console.log(`    ${contextLabel} | Next-page arrow is disabled — reached last page (${visited.size} date(s) visited)`);
+                break;
+            }
+            step(`${contextLabel} | Clicking next-page arrow to load more dates`);
             await nextArrow.click();
             await page.waitForTimeout(300);
         }
     }
+
+    if (visited.size >= MAX_DATES) {
+        console.log(`    ${contextLabel} | Reached MAX_DATES limit (${MAX_DATES}) — stopping iteration`);
+    }
+    console.log(`    ${contextLabel} | Date iteration finished — ${visited.size} date(s) checked, ${duplicates.length} duplicate(s) so far`);
 }
 
 function _findDuplicates(times, providerName, dateName, duplicates) {
     const seen = new Set();
     const ctx = [providerName, dateName].filter(Boolean).join(' | ');
     times.forEach(t => {
-        if (seen.has(t)) duplicates.push(`${ctx}: duplicate slot "${t}"`);
+        if (seen.has(t)) {
+            duplicates.push(`${ctx}: duplicate slot "${t}"`);
+            console.log(`  ⚠️  ${ctx}: DUPLICATE slot "${t}"`);
+        }
         seen.add(t);
     });
 }
