@@ -22,7 +22,7 @@ async function globalSetup() {
     await page.getByRole('button', { name: 'Sign In' }).click();
     // Wait for the login redirect to complete before capturing cookies.
     // The portal redirects away from /login on success — any other URL means auth succeeded.
-    await page.waitForURL(url => !url.pathname.includes('/login'), { timeout: 20_000 });
+    await page.waitForURL(url => !url.pathname.includes('/login'), { timeout: 60_000 });
     const postLoginUrl = page.url();
     console.log('Post-login URL:', postLoginUrl);
 
