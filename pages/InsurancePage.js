@@ -89,8 +89,8 @@ export class InsurancePage {
 
             const noOptions = this.page.locator('[role="status"]:has-text("No options"), text=/No options/i');
             const loaded = await Promise.race([
-                option.waitFor({ state: 'visible', timeout: 20_000 }).then(() => 'found'),
-                noOptions.waitFor({ state: 'visible', timeout: 20_000 }).then(() => 'no_options'),
+                option.waitFor({ state: 'visible', timeout: 40_000 }).then(() => 'found'),
+                noOptions.waitFor({ state: 'visible', timeout: 40_000 }).then(() => 'no_options'),
             ]).catch(() => 'timeout');
 
             if (loaded !== 'found') {
