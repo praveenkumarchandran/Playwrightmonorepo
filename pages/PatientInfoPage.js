@@ -40,7 +40,7 @@ export class PatientInfoPage {
     // ── Public API ────────────────────────────────────────────────────────────
 
     async fillBasicInfo(data) {
-        await this.firstName.waitFor({ state: 'visible', timeout: 10_000 });
+        await this.firstName.waitFor({ state: 'visible' });
         await this.firstName.fill(data.firstName);
         await this.lastName.fill(data.lastName);
         await this.email.fill(data.email);
@@ -87,7 +87,7 @@ export class PatientInfoPage {
             .filter({ hasText: value })
             .first();
 
-        await option.waitFor({ state: 'visible', timeout: 10_000 });
+        await option.waitFor({ state: 'visible' });
         await option.click();
 
         console.log(`Gender selected: ${value}`);
@@ -117,7 +117,7 @@ export class PatientInfoPage {
                 .filter({ has: this.page.locator('label:has-text("State")') })
                 .locator('[role="combobox"], .MuiSelect-select')
                 .first();
-            await trigger.waitFor({ state: 'visible', timeout: 10_000 });
+            await trigger.waitFor({ state: 'visible' });
             await trigger.click();
         }
 
@@ -126,7 +126,7 @@ export class PatientInfoPage {
             .filter({ hasText: value })
             .first();
 
-        await option.waitFor({ state: 'visible', timeout: 10_000 });
+        await option.waitFor({ state: 'visible' });
         await option.click();
         console.log(`State selected: ${value}`);
     }
@@ -151,7 +151,7 @@ export class PatientInfoPage {
             .filter({ hasText: value })
             .first();
 
-        await option.waitFor({ state: 'visible', timeout: 10_000 });
+        await option.waitFor({ state: 'visible' });
         await option.click();
 
         console.log(`Referral selected: ${value}`);

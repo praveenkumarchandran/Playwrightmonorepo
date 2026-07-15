@@ -1,5 +1,7 @@
 import { defineConfig } from '@playwright/test';
 
+const IS_CI = !!process.env.CI;
+
 export default defineConfig({
     globalSetup: './global-setup.js',
 
@@ -21,10 +23,10 @@ export default defineConfig({
         baseURL: 'https://stage.setter.layline.live',
         headless: true,
 
-        // Action timeout: how long a single click/fill/press can take.
-        actionTimeout: 15_000,
-        // Navigation timeout: how long page.goto / waitForNavigation can take.
-        navigationTimeout: 45_000,
+        // CI runners (US east) hit the staging server with 5-10x more latency than local.
+        // All waitFor() / click / fill inherit these — no per-call timeouts needed in page objects.
+        actionTimeout:     IS_CI ? 35_000 : 20_000,
+        navigationTimeout: IS_CI ? 60_000 : 45_000,
 
         trace: 'on-first-retry',
         screenshot: 'only-on-failure',
@@ -200,13 +202,4 @@ export default defineConfig({
 
     ],
 
-    // webServer is only needed for LOCAL development (when running a local frontend).
-    // In CI the tests hit https://stage.setter.layline.live directly — no local server needed.
-    ...(process.env.CI ? {} : {
-        webServer: {
-            command: 'npm run dev --prefix frontend',
-            url: 'https://stage.setter.layline.live',
-            reuseExistingServer: true,
-        },
-    }),
 });

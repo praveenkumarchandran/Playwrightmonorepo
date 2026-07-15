@@ -13,7 +13,7 @@ export class ExistingPatientPage {
     }
 
     async waitForLoad() {
-        await this.firstNameInput.waitFor({ state: 'visible', timeout: 15_000 });
+        await this.firstNameInput.waitFor({ state: 'visible' });
     }
 
     async fill(firstName, lastName, dob) {
@@ -25,9 +25,9 @@ export class ExistingPatientPage {
     }
 
     async findAppointment() {
-        await this.findBtn.waitFor({ state: 'visible', timeout: 10_000 });
+        await this.findBtn.waitFor({ state: 'visible' });
         await this.findBtn.click();
-        await this.page.waitForLoadState('networkidle', { timeout: 30_000 });
+        await this.page.waitForLoadState('networkidle');
     }
 
     async search(firstName, lastName, dob) {

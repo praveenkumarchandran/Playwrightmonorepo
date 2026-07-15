@@ -47,7 +47,7 @@ export class IntakePage {
         await this.symptomsInput.fill(searchTerm);
 
         const option = this.page.locator(`.MuiAutocomplete-option:has-text("${optionText}")`);
-        await option.waitFor({ state: 'visible', timeout: 10_000 });
+        await option.waitFor({ state: 'visible' });
         await option.click();
     }
 
@@ -57,13 +57,13 @@ export class IntakePage {
         await this.selectSymptom('Knee', 'Knee Pain');
 
         const neckOption = this.page.locator('.MuiAutocomplete-option:has-text("Neck Pain")');
-        await neckOption.waitFor({ state: 'visible', timeout: 10_000 });
+        await neckOption.waitFor({ state: 'visible' });
         await neckOption.click();
     }
 
     async answerNoQuestions() {
         await this.noLabels.first()
-            .waitFor({ state: 'visible', timeout: 10_000 })
+            .waitFor({ state: 'visible' })
             .catch(() => { });
 
         const count = await this.noLabels.count();
@@ -72,13 +72,9 @@ export class IntakePage {
         }
     }
 
-    /**
-     * Hopemark: Conditions is a read-only MUI Autocomplete — click to open popup, pick items.
-     * @param {string[]} conditions  e.g. ['ADHD', 'Anxiety']
-     */
     async selectConditions(conditions = ['ADHD']) {
         const input = this.conditionsSelect.locator('input').first();
-        await input.waitFor({ state: 'visible', timeout: 10_000 });
+        await input.waitFor({ state: 'visible' });
         await input.click();
 
         for (const cond of conditions) {
@@ -86,7 +82,7 @@ export class IntakePage {
                 .locator('[role="option"]')
                 .filter({ hasText: cond })
                 .first();
-            await option.waitFor({ state: 'visible', timeout: 10_000 });
+            await option.waitFor({ state: 'visible' });
             await option.click();
             console.log(`Condition selected: ${cond}`);
         }
@@ -94,12 +90,8 @@ export class IntakePage {
         await this.page.keyboard.press('Escape');
     }
 
-    /**
-     * Hopemark: "How did you hear about us?" is a MUI Autocomplete — type to filter and pick.
-     * @param {string} value  e.g. 'Friends/Family'
-     */
     async selectHearAboutUs(value) {
-        await this.hearAboutUsSelect.waitFor({ state: 'visible', timeout: 10_000 });
+        await this.hearAboutUsSelect.waitFor({ state: 'visible' });
         await this.hearAboutUsSelect.click();
         await this.hearAboutUsSelect.pressSequentially(value, { delay: 20 });
 
@@ -107,14 +99,13 @@ export class IntakePage {
             .locator('[role="option"]')
             .filter({ hasText: value })
             .first();
-        await option.waitFor({ state: 'visible', timeout: 10_000 });
+        await option.waitFor({ state: 'visible' });
         await option.click();
         console.log(`Hear about us selected: ${value}`);
     }
 
-    // SINY: fill the optional free-text textarea (pass empty string to leave blank)
     async fillSINYTextarea(text = '') {
-        await this.sinyTextarea.waitFor({ state: 'visible', timeout: 10_000 });
+        await this.sinyTextarea.waitFor({ state: 'visible' });
         if (text) await this.sinyTextarea.fill(text);
     }
 
@@ -123,7 +114,7 @@ export class IntakePage {
     }
 
     async continue() {
-        await this.continueBtn.waitFor({ state: 'visible', timeout: 10_000 });
+        await this.continueBtn.waitFor({ state: 'visible' });
         await this.continueBtn.click();
     }
 }

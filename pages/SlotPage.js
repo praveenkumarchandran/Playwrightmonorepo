@@ -28,7 +28,7 @@ export class SlotPage {
 
     // MUI Autocomplete: click input, type, pick from dropdown list
     async #selectAutocomplete(input, value) {
-        await input.waitFor({ state: 'visible', timeout: 10_000 });
+        await input.waitFor({ state: 'visible' });
         await input.click();
         await input.clear();
         await input.pressSequentially(value, { delay: 20 });
@@ -38,14 +38,14 @@ export class SlotPage {
             .filter({ hasText: value })
             .first();
 
-        await option.waitFor({ state: 'visible', timeout: 10_000 });
+        await option.waitFor({ state: 'visible' });
         await option.click();
         console.log(`✅ Selected (autocomplete): ${value}`);
     }
 
     // MUI Select: click the div trigger, pick from listbox
     async #selectDropdown(trigger, value) {
-        await trigger.waitFor({ state: 'visible', timeout: 10_000 });
+        await trigger.waitFor({ state: 'visible' });
         await trigger.click();
 
         const option = this.page
@@ -53,7 +53,7 @@ export class SlotPage {
             .filter({ hasText: value })
             .first();
 
-        await option.waitFor({ state: 'visible', timeout: 10_000 });
+        await option.waitFor({ state: 'visible' });
         await option.click();
         console.log(`✅ Selected (dropdown): ${value}`);
     }
@@ -174,7 +174,7 @@ export class SlotPage {
             await this.tndiDateBtn.click();
             console.log(`  [SlotPage] TNDI date clicked`);
 
-            await this.tndiTimeBtn.waitFor({ state: 'visible', timeout: 10_000 });
+            await this.tndiTimeBtn.waitFor({ state: 'visible' });
             await this.tndiTimeBtn.click();
             console.log(`TNDI time clicked`);
         }
@@ -196,13 +196,13 @@ export class SlotPage {
             .filter({ hasText: new RegExp(providerName, 'i') })
             .first();
 
-        await slot.waitFor({ state: 'visible', timeout: 10_000 });
+        await slot.waitFor({ state: 'visible' });
         await slot.click();
         console.log(`Slot clicked for provider: ${providerName}`);
     }
 
     async continue() {
-        await this.continueBtn.waitFor({ state: 'visible', timeout: 10_000 });
+        await this.continueBtn.waitFor({ state: 'visible' });
         await this.continueBtn.click();
     }
 }

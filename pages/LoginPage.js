@@ -15,9 +15,7 @@ export class LoginPage {
             waitUntil: 'domcontentloaded'
         });
 
-        await this.page.waitForSelector('input[type="password"]', {
-            timeout: 15000
-        });
+        await this.page.waitForSelector('input[type="password"]');
     }
 
     async login(email, pass) {
