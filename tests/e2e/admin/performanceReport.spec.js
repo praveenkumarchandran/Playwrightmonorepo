@@ -938,12 +938,20 @@ test.describe('Performance Report', () => {
         const accessEmail    = process.env.ACCESS_EMAIL    ?? process.env.ADMIN_EMAIL ?? '';
         const accessPassword = process.env.ACCESS_PASSWORD ?? process.env.ADMIN_PASSWORD ?? '';
         console.log('  🔐 Navigating to access portal login...');
-        await page.goto('https://access.layline.live/login', { waitUntil: 'networkidle', timeout: 45_000 })
+        // Use domcontentloaded — networkidle can fire before Vue Router decides to
+        // redirect (when session cookies are already valid), leaving us with a URL
+        // of /login even though the app is about to navigate away.
+        await page.goto('https://access.layline.live/login', { waitUntil: 'domcontentloaded', timeout: 45_000 })
             .catch(() => {});
 
+        // Give Vue Router up to 15s to redirect away if the session is valid.
+        // If it doesn't redirect, we know the session is expired and must log in.
+        await page.waitForURL(u => !u.includes('/login'), { timeout: 15_000 }).catch(() => {});
+
         if (page.url().includes('/login')) {
-            // Still on the login page — credentials required
-            console.log('  🔐 Login page active — signing in as bantony');
+            // Genuinely on the login page — wait for the form to render, then submit.
+            console.log('  🔐 Login form required — waiting for email input...');
+            await page.locator('input[type="email"]').first().waitFor({ state: 'visible', timeout: 30_000 });
             await page.locator('input[type="email"]').first().fill(accessEmail);
             await page.locator('input[type="password"]').first().fill(accessPassword);
             await page.getByRole('button', { name: /^Sign In$/i }).click();
