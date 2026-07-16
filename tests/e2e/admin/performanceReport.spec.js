@@ -122,8 +122,10 @@ async function goToReport(page) {
         }
     }
 
-    await page.locator('text=/Performance Report/i').first()
-        .waitFor({ state: 'visible', timeout: 45_000 });
+    if (!page.url().includes('performance-report')) {
+        await page.waitForURL(/performance-report/, { timeout: 45_000 });
+    }
+    await page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => { });
     console.log(`  📍 Loaded: ${page.url()}`);
 }
 
