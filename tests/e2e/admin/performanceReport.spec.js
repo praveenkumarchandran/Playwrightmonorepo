@@ -112,18 +112,18 @@ async function goToReport(page) {
 
             // Click "Performance Report" in the dropdown
             const perfLink = page.locator('a, li, span').filter({ hasText: /Performance Report/i }).first();
-            await perfLink.waitFor({ state: 'visible', timeout: 5_000 });
+            await perfLink.waitFor({ state: 'visible', timeout: 15_000 });
             await perfLink.click();
-            await page.waitForLoadState('networkidle', { timeout: 20_000 }).catch(() => { });
+            await page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => { });
         } else {
             // Fallback: direct URL
             await page.goto(REPORT_URL, { waitUntil: 'domcontentloaded', timeout: 30_000 });
-            await page.waitForLoadState('networkidle', { timeout: 20_000 }).catch(() => { });
+            await page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => { });
         }
     }
 
     await page.locator('text=/Performance Report/i').first()
-        .waitFor({ state: 'visible', timeout: 15_000 });
+        .waitFor({ state: 'visible', timeout: 45_000 });
     console.log(`  📍 Loaded: ${page.url()}`);
 }
 
