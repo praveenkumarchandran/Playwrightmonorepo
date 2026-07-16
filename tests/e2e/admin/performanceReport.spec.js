@@ -933,70 +933,46 @@ test.describe('Performance Report', () => {
 
         console.log(`  📅 Alert window: ${alertStart} → ${alertEnd}`);
 
-        // ── Step 1: Bantony login ─────────────────────────────────────────────
-        // Use networkidle so JS redirects settle before we check the URL.
+        // ── Step 1: Get Bearer token via the login API directly ──────────────
+        // Calling api.config.layline.live/api/login is far more reliable than
+        // navigating the Vue SPA and scraping sessionStorage — no browser rendering,
+        // no timing races, works identically locally and in CI headless.
         const accessEmail    = process.env.ACCESS_EMAIL    ?? process.env.ADMIN_EMAIL ?? '';
         const accessPassword = process.env.ACCESS_PASSWORD ?? process.env.ADMIN_PASSWORD ?? '';
-        console.log('  🔐 Navigating to access portal login...');
-        // Use domcontentloaded — networkidle can fire before Vue Router decides to
-        // redirect (when session cookies are already valid), leaving us with a URL
-        // of /login even though the app is about to navigate away.
-        await page.goto('https://access.layline.live/login', { waitUntil: 'domcontentloaded', timeout: 45_000 })
-            .catch(() => {});
+        console.log(`  🔑 Calling login API as ${accessEmail}...`);
 
-        // Give Vue Router up to 15s to redirect away if the session is valid.
-        // If it doesn't redirect, we know the session is expired and must log in.
-        await page.waitForURL(u => !u.includes('/login'), { timeout: 15_000 }).catch(() => {});
+        const loginResp = await page.request.post('https://api.config.layline.live/api/login', {
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': '*/*',
+                'Origin': 'https://access.layline.live',
+                'Referer': 'https://access.layline.live/',
+            },
+            data: { email: accessEmail, password: accessPassword },
+            timeout: 30_000,
+        });
 
-        if (page.url().includes('/login')) {
-            // Genuinely on the login page — wait for the form to render, then submit.
-            console.log('  🔐 Login form required — waiting for email input...');
-            await page.locator('input[type="email"]').first().waitFor({ state: 'visible', timeout: 30_000 });
-            await page.locator('input[type="email"]').first().fill(accessEmail);
-            await page.locator('input[type="password"]').first().fill(accessPassword);
-            await page.getByRole('button', { name: /^Sign In$/i }).click();
-            await page.waitForURL(u => !u.includes('/login'), { timeout: 30_000 });
-            await page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => {});
-            console.log(`  ✅ Signed in — ${page.url()}`);
-        } else {
-            console.log(`  ✅ Already authenticated — ${page.url()}`);
+        if (!loginResp.ok()) {
+            throw new Error(`Login API ${loginResp.status()} — check ACCESS_EMAIL / ACCESS_PASSWORD`);
         }
 
-        // ── Step 2: Extract Bearer token from sessionStorage ─────────────────
-        // The Vue app stores the JWT Bearer token in sessionStorage after login.
-        // We extract it here so we can call the insights API directly from Node.js,
-        // bypassing the multiselect UI entirely (which reliably fails in CI headless).
-        console.log('  🔑 Waiting for Bearer token in sessionStorage...');
-        const bearerHandle = await page.waitForFunction(() => {
-            const scan = store => {
-                for (let i = 0; i < store.length; i++) {
-                    const key = store.key(i);
-                    let val = store.getItem(key) ?? '';
-                    if (val.startsWith('Bearer ')) val = val.slice(7);
-                    if (val.startsWith('eyJ') && val.length > 50) return val;
-                    try {
-                        const obj = JSON.parse(val);
-                        for (const v of Object.values(obj ?? {})) {
-                            if (typeof v === 'string' && v.startsWith('eyJ') && v.length > 50) return v;
-                        }
-                    } catch (_) {}
-                }
-                return null;
-            };
-            return scan(sessionStorage) ?? scan(localStorage) ?? null;
-        }, { timeout: 30_000 }).catch(() => null);
-
-        const bearerToken = bearerHandle ? await bearerHandle.jsonValue() : null;
+        const loginJson = await loginResp.json();
+        // Token field varies by API version — check common locations
+        const bearerToken =
+            loginJson.token ??
+            loginJson.accessToken ??
+            loginJson.access_token ??
+            loginJson.data?.token ??
+            loginJson.data?.accessToken ??
+            null;
 
         if (!bearerToken) {
-            throw new Error(
-                'Bearer token not found in sessionStorage / localStorage after bantony login.\n' +
-                'Check ACCESS_EMAIL / ACCESS_PASSWORD env vars and that access.layline.live is reachable.'
-            );
+            console.log('  ⚠️ Login response keys:', Object.keys(loginJson).join(', '));
+            throw new Error('Bearer token not found in login API response — update key lookup above');
         }
-        console.log(`  ✅ Bearer token extracted (length: ${bearerToken.length})`);
+        console.log(`  ✅ Bearer token obtained (length: ${bearerToken.length})`);
 
-        // ── Step 3: Fetch all client data directly (no Vue UI dependency) ────
+        // ── Step 2: Fetch all client data directly ───────────────────────────
         // One POST per client avoids HTTP 500 on large payloads.
         const targetUrl = `https://insights.layline.live/api/v1/reports/performance?fromDate=${fromDate}&toDate=${toDate}`;
         console.log(`  📡 Direct API → ${targetUrl} | ${ids.length} clients`);
