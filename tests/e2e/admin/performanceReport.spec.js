@@ -933,6 +933,23 @@ test.describe('Performance Report', () => {
 
         console.log(`  📅 Alert window: ${alertStart} → ${alertEnd}`);
 
+        // Force fresh bantony login so the Vue app's Bearer token is live in memory.
+        // Stored cookies alone aren't enough — the Bearer token lives in sessionStorage
+        // (not exported by Playwright storageState) so CI always starts without it.
+        const accessEmail    = process.env.ACCESS_EMAIL    ?? process.env.ADMIN_EMAIL ?? '';
+        const accessPassword = process.env.ACCESS_PASSWORD ?? process.env.ADMIN_PASSWORD ?? '';
+        await page.goto('https://access.layline.live/login', { waitUntil: 'domcontentloaded', timeout: 30_000 });
+        await page.waitForLoadState('networkidle', { timeout: 20_000 }).catch(() => {});
+        const signInBtn = page.getByRole('button', { name: /^Sign In$/i });
+        if (await signInBtn.isVisible({ timeout: 10_000 }).catch(() => false)) {
+            await page.locator('input[type="email"]').first().fill(accessEmail);
+            await page.locator('input[type="password"]').first().fill(accessPassword);
+            await signInBtn.click();
+            await page.waitForURL(u => !u.pathname.includes('/login'), { timeout: 30_000 });
+            await page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => {});
+            console.log(`  ✅ Access portal signed in as bantony — ${page.url()}`);
+        }
+
         const { capture } = await setupPerfCapture(page, ids, fromDate, toDate, 270_000, 1);
         await goToReport(page);
         await selectClient(page, 'Clarus Dermatology');
