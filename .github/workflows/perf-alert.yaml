@@ -1,0 +1,76 @@
+name: Performance Alert — Patient Count Decline
+
+on:
+  schedule:
+    - cron: "0 3 * * 1"   # Every Monday 3:00 AM UTC (9:00 AM IST)
+  workflow_dispatch:        # Allow manual trigger from Actions tab
+
+jobs:
+  alert:
+    name: Check patient count decline (last 30 days)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install chromium --with-deps
+
+      - name: Run decline alert check (TC-ADMIN-PR-08)
+        env:
+          ACCESS_EMAIL:    ${{ secrets.ACCESS_EMAIL }}
+          ACCESS_PASSWORD: ${{ secrets.ACCESS_PASSWORD }}
+          ADMIN_EMAIL:     ${{ secrets.ADMIN_EMAIL }}
+          ADMIN_PASSWORD:  ${{ secrets.ADMIN_PASSWORD }}
+          ALERT_STREAK:    "4"
+        run: |
+          npx playwright test --project=admin performanceReport \
+            -g "TC-ADMIN-PR-08" \
+            --reporter=line
+        continue-on-error: true   # test exits 0 whether or not there are alerts
+
+      - name: Check if alert was triggered
+        id: alert_check
+        run: |
+          if [ -f test-results/alert-triggered.txt ]; then
+            echo "triggered=true" >> $GITHUB_OUTPUT
+            echo "summary=$(cat test-results/alert-triggered.txt | head -1)" >> $GITHUB_OUTPUT
+          else
+            echo "triggered=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Send alert email
+        if: steps.alert_check.outputs.triggered == 'true'
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          subject: "⚠️ Patient Count Alert — ${{ steps.alert_check.outputs.summary }}"
+          to: praveen.c@jseven.in
+          from: Layline Performance Monitor
+          html_body: file://test-results/alert-email.html
+
+      - name: No alert — all clients healthy
+        if: steps.alert_check.outputs.triggered == 'false'
+        run: echo "✅ No sustained decline detected across all clients. No email sent."
+
+      - name: Upload alert artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: perf-alert-${{ github.run_id }}
+          path: |
+            test-results/alert-email.html
+            test-results/alert-triggered.txt
+          if-no-files-found: ignore
+          retention-days: 30
