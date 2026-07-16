@@ -949,16 +949,23 @@ test.describe('Performance Report', () => {
                 'Accept': '*/*',
                 'Origin': 'https://access.layline.live',
                 'Referer': 'https://access.layline.live/',
+                'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
             },
             data: { email: accessEmail, password: accessPassword },
             timeout: 30_000,
         });
 
+        const loginBody = await loginResp.text();
+        console.log(`  📋 Login API status: ${loginResp.status()}`);
+        console.log(`  📋 Login API response (first 300): ${loginBody.slice(0, 300)}`);
+
         if (!loginResp.ok()) {
             throw new Error(`Login API ${loginResp.status()} — check ACCESS_EMAIL / ACCESS_PASSWORD`);
         }
 
-        const loginJson = await loginResp.json();
+        let loginJson;
+        try { loginJson = JSON.parse(loginBody); } catch (_) { loginJson = {}; }
+
         // Token field varies by API version — check common locations
         const bearerToken =
             loginJson.token ??
@@ -972,7 +979,7 @@ test.describe('Performance Report', () => {
             console.log('  ⚠️ Login response keys:', Object.keys(loginJson).join(', '));
             throw new Error('Bearer token not found in login API response — update key lookup above');
         }
-        console.log(`  ✅ Bearer token obtained (length: ${bearerToken.length})`);
+        console.log(`  ✅ Bearer token obtained (length: ${bearerToken.length}, prefix: ${bearerToken.slice(0, 10)}...)`);
 
         // ── Step 2: Fetch all client data directly ───────────────────────────
         // One POST per client avoids HTTP 500 on large payloads.
@@ -997,7 +1004,8 @@ test.describe('Performance Report', () => {
                 });
 
                 if (!resp.ok()) {
-                    console.log(`  ⚠️ Client ${clientId} HTTP ${resp.status()} — skipping`);
+                    const errBody = await resp.text().catch(() => '');
+                    console.log(`  ⚠️ Client ${clientId} HTTP ${resp.status()} body: ${errBody.slice(0, 150)}`);
                     continue;
                 }
 
