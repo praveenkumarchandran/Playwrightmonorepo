@@ -1,5 +1,7 @@
 import { defineConfig } from '@playwright/test';
 
+const IS_CI = !!process.env.CI;
+
 export default defineConfig({
     globalSetup: './global-setup.js',
 
@@ -21,10 +23,10 @@ export default defineConfig({
         baseURL: 'https://stage.setter.layline.live',
         headless: true,
 
-        // Action timeout: how long a single click/fill/press can take.
-        actionTimeout: 15_000,
-        // Navigation timeout: how long page.goto / waitForNavigation can take.
-        navigationTimeout: 45_000,
+        // CI runners (US east) hit the staging server with 5-10x more latency than local.
+        // All waitFor() / click / fill inherit these — no per-call timeouts needed in page objects.
+        actionTimeout:     IS_CI ? 35_000 : 20_000,
+        navigationTimeout: IS_CI ? 60_000 : 45_000,
 
         trace: 'on-first-retry',
         screenshot: 'only-on-failure',
@@ -115,17 +117,75 @@ export default defineConfig({
             retries: 1,
         },
 
-        // ── SINY Widget ───────────────────────────────────────────────────────
+        // ── SINY Widget (staging) ─────────────────────────────────────────────
         // Flow: Widget (filters + calendar + slot) → Intake → Insurance → Add Info
-        // fullyParallel: true — all tests in the single spec file run in parallel
+        // workers: 1 — 50+ tests call completeWidgetToInsurance; even workers: 2 caused
+        // APPT04-06 to race with other describe blocks booking the same first slot (9:20 AM),
+        // leaving the loser with an empty session on the insurance page.
         {
-            name: 'siny-widget',
+            name: 'siny-widget-stage',
             testDir: './tests/e2e/widget',
+            testMatch: /sinyWidget\.spec\.js/,
             timeout: 240_000,   // 4 min — full flow + slow locations need extra time
+            fullyParallel: true,
+            workers: 2,
+            retries: 1,
+            use: {
+                actionTimeout: 25_000,  // Florida/Forest Hills dropdowns can be slow on staging
+            },
+        },
+
+        // ── SINY Widget (production) ──────────────────────────────────────────
+        {
+            name: 'siny-widget-prod',
+            testDir: './tests/e2e/widget',
+            testMatch: /sinyWidget\.spec\.js/,
+            timeout: 300_000,   // 5 min — production can be slower than staging
+            fullyParallel: true,
+            workers: 1,
+            retries: 1,
+            use: {
+                actionTimeout: 30_000,
+            },
+            env: { SETTER_BASE_URL: 'https://setter.layline.live' },
+        },
+
+        // ── Clarus Widget ─────────────────────────────────────────────────────
+        // Flow: Widget (Patient Type + Location + Service Type + Calendar) → Insurance → Add Info
+        // No intake step. Insurance uses MUI Select with Self-pay pre-selected.
+        {
+            name: 'clarus-widget',
+            testDir: './tests/e2e/widget',
+            testMatch: /clarusWidget\.spec\.js/,
+            timeout: 240_000,
             fullyParallel: true,
             retries: 0,
             use: {
-                actionTimeout: 25_000,  // Florida/Forest Hills dropdowns can be slow on staging
+                actionTimeout: 25_000,
+            },
+        },
+
+        // ── Hopemark Widget (PRODUCTION) ──────────────────────────────────────
+        // Widget: https://setter.layline.live/hopemarkhealth/1/oakbrook/widget?widgetId=2
+        // Embedded at: hopemarkheath.com/outpatient-psychiatry-clinic/oak-brook/#schedule
+        // Dropdowns: Patient Type | Visit Reason  (no Location, no calendar)
+        // Slots: combined date+time card buttons + Show More
+        // Flow: Widget → (slot + Schedule Appointment | Show More → FA) → Intake → Insurance → Add Info
+        // workers: 1 — the production widget always surfaces the SAME first slot
+        // (appointmentid=52268996, 8:00 AM Wed Jul 8). Two concurrent workers would
+        // both commit insurance for the same appointmentid, causing a server conflict
+        // and a waitForURL timeout on the second worker. Sequential is the only safe option.
+        {
+            name: 'hopemark-widget',
+            testDir: './tests/e2e/widget',
+            testMatch: /hopemarkWidget\.spec\.js/,
+            timeout: 300_000,   // 5 min — widget + intake + insurance chain is long
+            fullyParallel: true,
+            workers: 1,
+            retries: 1,
+            use: {
+                baseURL: 'https://setter.layline.live',  // production
+                actionTimeout: 30_000,
             },
         },
 
@@ -133,20 +193,13 @@ export default defineConfig({
         {
             name: 'admin',
             testDir: './tests/e2e/admin',
+            timeout: 60_000,
+            workers: 1,
             use: {
-                storageState: 'tests/.auth/admin-state.json',
+                storageState: 'admin-auth.json',
             },
         },
 
     ],
 
-    // webServer is only needed for LOCAL development (when running a local frontend).
-    // In CI the tests hit https://stage.setter.layline.live directly — no local server needed.
-    ...(process.env.CI ? {} : {
-        webServer: {
-            command: 'npm run dev --prefix frontend',
-            url: 'https://stage.setter.layline.live',
-            reuseExistingServer: true,
-        },
-    }),
 });
