@@ -36,6 +36,28 @@ async function globalSetup() {
         }
     }
 
+    // Also log into access.layline.live as bantony (ACCESS_EMAIL) so CI has valid
+    // cookies for both portals. Without this, access.layline.live renders without
+    // the client multiselect (pchandran has no session there).
+    const accessEmail    = process.env.ACCESS_EMAIL    ?? '';
+    const accessPassword = process.env.ACCESS_PASSWORD ?? '';
+    if (accessEmail) {
+        const accessPage = await context.newPage();
+        await accessPage.goto('https://access.layline.live/login', { waitUntil: 'domcontentloaded', timeout: 30_000 });
+        await accessPage.waitForLoadState('networkidle', { timeout: 20_000 }).catch(() => {});
+        const signInBtn = accessPage.getByRole('button', { name: /^Sign In$/i });
+        if (await signInBtn.isVisible({ timeout: 10_000 }).catch(() => false)) {
+            await accessPage.locator('input[type="email"]').first().fill(accessEmail);
+            await accessPage.locator('input[type="password"]').first().fill(accessPassword);
+            await signInBtn.click();
+            await accessPage.waitForURL(u => !u.pathname.includes('/login'), { timeout: 30_000 }).catch(() => {});
+            console.log('Access portal (bantony) login stored. URL:', accessPage.url());
+        } else {
+            console.log('Access portal: already logged in or login page not found.');
+        }
+        await accessPage.close();
+    }
+
     await context.storageState({ path: 'admin-auth.json' });
 
     // Strip persist:adminLogin so the SPA uses URL-based routing in tests
