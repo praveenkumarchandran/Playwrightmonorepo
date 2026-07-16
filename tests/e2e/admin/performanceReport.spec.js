@@ -998,6 +998,15 @@ test.describe('Performance Report', () => {
                         'Accept': 'application/json, text/plain, */*',
                         'Origin': 'https://access.layline.live',
                         'Referer': 'https://access.layline.live/',
+                        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                        // Sec-Fetch headers — browsers send these automatically for cross-origin
+                        // requests; insights.layline.live may require them to accept the request
+                        'Sec-Fetch-Site': 'same-site',
+                        'Sec-Fetch-Mode': 'cors',
+                        'Sec-Fetch-Dest': 'empty',
+                        'Sec-Ch-Ua': '"Chromium";v="120", "Not A(Brand";v="24"',
+                        'Sec-Ch-Ua-Mobile': '?0',
+                        'Sec-Ch-Ua-Platform': '"Linux"',
                     },
                     data: { clientId: [clientId] },
                     timeout: 60_000,
