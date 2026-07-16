@@ -329,7 +329,9 @@ async function selectClient(page, clientName) {
     //   but element is not visible (hidden by CSS until dropdown opens)
 
     // Step 1: Click the visible tags area to open the dropdown
+    // In CI the Vue multiselect component renders after networkidle — wait explicitly.
     const tagsArea = page.locator('.multiselect__tags').first();
+    await tagsArea.waitFor({ state: 'visible', timeout: 60_000 });
     await tagsArea.click();
     await page.waitForTimeout(400);
 
