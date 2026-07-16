@@ -937,8 +937,10 @@ test.describe('Performance Report', () => {
         // Calling api.config.layline.live/api/login is far more reliable than
         // navigating the Vue SPA and scraping sessionStorage — no browser rendering,
         // no timing races, works identically locally and in CI headless.
-        const accessEmail    = process.env.ACCESS_EMAIL    ?? process.env.ADMIN_EMAIL ?? '';
-        const accessPassword = process.env.ACCESS_PASSWORD ?? process.env.ADMIN_PASSWORD ?? '';
+        // Use || not ?? — GitHub Actions sets unset secrets to '' (empty string),
+        // which ?? treats as a valid value and never falls through to the backup.
+        const accessEmail    = process.env.ACCESS_EMAIL    || process.env.ADMIN_EMAIL    || '';
+        const accessPassword = process.env.ACCESS_PASSWORD || process.env.ADMIN_PASSWORD || '';
         console.log(`  🔑 Calling login API as ${accessEmail}...`);
 
         const loginResp = await page.request.post('https://api.config.layline.live/api/login', {
