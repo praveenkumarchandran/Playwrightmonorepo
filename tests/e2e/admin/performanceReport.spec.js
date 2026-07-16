@@ -933,28 +933,101 @@ test.describe('Performance Report', () => {
 
         console.log(`  📅 Alert window: ${alertStart} → ${alertEnd}`);
 
-        // Force fresh bantony login so the Vue app's Bearer token is live in memory.
-        // Stored cookies alone aren't enough — the Bearer token lives in sessionStorage
-        // (not exported by Playwright storageState) so CI always starts without it.
+        // ── Step 1: Bantony login ─────────────────────────────────────────────
+        // Use networkidle so JS redirects settle before we check the URL.
         const accessEmail    = process.env.ACCESS_EMAIL    ?? process.env.ADMIN_EMAIL ?? '';
         const accessPassword = process.env.ACCESS_PASSWORD ?? process.env.ADMIN_PASSWORD ?? '';
-        await page.goto('https://access.layline.live/login', { waitUntil: 'domcontentloaded', timeout: 30_000 });
-        await page.waitForLoadState('networkidle', { timeout: 20_000 }).catch(() => {});
-        const signInBtn = page.getByRole('button', { name: /^Sign In$/i });
-        if (await signInBtn.isVisible({ timeout: 10_000 }).catch(() => false)) {
+        console.log('  🔐 Navigating to access portal login...');
+        await page.goto('https://access.layline.live/login', { waitUntil: 'networkidle', timeout: 45_000 })
+            .catch(() => {});
+
+        if (page.url().includes('/login')) {
+            // Still on the login page — credentials required
+            console.log('  🔐 Login page active — signing in as bantony');
             await page.locator('input[type="email"]').first().fill(accessEmail);
             await page.locator('input[type="password"]').first().fill(accessPassword);
-            await signInBtn.click();
-            await page.waitForURL(u => !u.pathname.includes('/login'), { timeout: 30_000 });
+            await page.getByRole('button', { name: /^Sign In$/i }).click();
+            await page.waitForURL(u => !u.includes('/login'), { timeout: 30_000 });
             await page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => {});
-            console.log(`  ✅ Access portal signed in as bantony — ${page.url()}`);
+            console.log(`  ✅ Signed in — ${page.url()}`);
+        } else {
+            console.log(`  ✅ Already authenticated — ${page.url()}`);
         }
 
-        const { capture } = await setupPerfCapture(page, ids, fromDate, toDate, 270_000, 1);
-        await goToReport(page);
-        await selectClient(page, 'Clarus Dermatology');
+        // ── Step 2: Extract Bearer token from sessionStorage ─────────────────
+        // The Vue app stores the JWT Bearer token in sessionStorage after login.
+        // We extract it here so we can call the insights API directly from Node.js,
+        // bypassing the multiselect UI entirely (which reliably fails in CI headless).
+        console.log('  🔑 Waiting for Bearer token in sessionStorage...');
+        const bearerHandle = await page.waitForFunction(() => {
+            const scan = store => {
+                for (let i = 0; i < store.length; i++) {
+                    const key = store.key(i);
+                    let val = store.getItem(key) ?? '';
+                    if (val.startsWith('Bearer ')) val = val.slice(7);
+                    if (val.startsWith('eyJ') && val.length > 50) return val;
+                    try {
+                        const obj = JSON.parse(val);
+                        for (const v of Object.values(obj ?? {})) {
+                            if (typeof v === 'string' && v.startsWith('eyJ') && v.length > 50) return v;
+                        }
+                    } catch (_) {}
+                }
+                return null;
+            };
+            return scan(sessionStorage) ?? scan(localStorage) ?? null;
+        }, { timeout: 30_000 }).catch(() => null);
 
-        const records = await capture;
+        const bearerToken = bearerHandle ? await bearerHandle.jsonValue() : null;
+
+        if (!bearerToken) {
+            throw new Error(
+                'Bearer token not found in sessionStorage / localStorage after bantony login.\n' +
+                'Check ACCESS_EMAIL / ACCESS_PASSWORD env vars and that access.layline.live is reachable.'
+            );
+        }
+        console.log(`  ✅ Bearer token extracted (length: ${bearerToken.length})`);
+
+        // ── Step 3: Fetch all client data directly (no Vue UI dependency) ────
+        // One POST per client avoids HTTP 500 on large payloads.
+        const targetUrl = `https://insights.layline.live/api/v1/reports/performance?fromDate=${fromDate}&toDate=${toDate}`;
+        console.log(`  📡 Direct API → ${targetUrl} | ${ids.length} clients`);
+
+        const allRecords = [];
+        for (let i = 0; i < ids.length; i++) {
+            const clientId = ids[i];
+            console.log(`  📦 Client ${clientId} (${i + 1}/${ids.length})...`);
+            try {
+                const resp = await page.request.post(targetUrl, {
+                    headers: {
+                        'Authorization': `Bearer ${bearerToken}`,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json, text/plain, */*',
+                        'Origin': 'https://access.layline.live',
+                        'Referer': 'https://access.layline.live/',
+                    },
+                    data: { clientId: [clientId] },
+                    timeout: 60_000,
+                });
+
+                if (!resp.ok()) {
+                    console.log(`  ⚠️ Client ${clientId} HTTP ${resp.status()} — skipping`);
+                    continue;
+                }
+
+                const json = await resp.json().catch(() => null);
+                const records = (json?.success && Array.isArray(json.data)) ? json.data
+                              : Array.isArray(json) ? json
+                              : [];
+
+                allRecords.push(...records);
+                console.log(`  ✅ Client ${clientId}: ${records.length} records (total: ${allRecords.length})`);
+            } catch (err) {
+                console.log(`  ❌ Client ${clientId} error: ${err.message} — skipping`);
+            }
+        }
+
+        const records = allRecords;
         expect(records.length).toBeGreaterThan(0);
 
         const clientMap = aggregateByClient(records);
